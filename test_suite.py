@@ -18,7 +18,7 @@ from multi_verifier import run_comprehensive_scan
 def run_tests():
     report = {}
     print("="*60)
-    print("STARTING MAILFINDER MULTI-ENGINE TEST SUITE")
+    print("STARTING MAILERONE MULTI-ENGINE TEST SUITE")
     print("="*60)
 
     # 1. Config Manager Test

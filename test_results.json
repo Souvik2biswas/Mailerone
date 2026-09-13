@@ -1,44 +1,44 @@
 {
     "config_manager": {
         "status": "PASSED",
-        "duration_sec": 0.009
+        "duration_sec": 0.003
     },
     "dns_inspector": {
         "status": "PASSED",
         "mx_count": 1,
         "spf_found": true,
         "dmarc_found": true,
-        "duration_sec": 1.776
+        "duration_sec": 1.611
     },
     "disposable_blocklist": {
         "status": "PASSED",
-        "blocklist_size": 8772,
-        "duration_sec": 0.955
+        "blocklist_size": 8814,
+        "duration_sec": 0.97
     },
     "disify_api": {
         "status": "PASSED",
         "dns": true,
         "free_provider": false,
         "role_account": true,
-        "duration_sec": 1.642
+        "duration_sec": 1.624
     },
     "osint_profilers": {
         "status": "PASSED",
         "gravatar_found": true,
         "github_found": true,
         "github_user": "libJNI",
-        "duration_sec": 11.234
+        "duration_sec": 3.001
     },
     "hunter_engine": {
-        "status": "PASSED",
-        "result": "risky",
-        "score": 78,
-        "error": null,
-        "duration_sec": 2.209
+        "status": "SKIPPED/UNAUTHORIZED",
+        "result": null,
+        "score": null,
+        "error": "Hunter Error: 401",
+        "duration_sec": 1.339
     },
     "multi_verifier_scan": {
         "status": "PASSED",
         "target": "admin@microsoft.com",
-        "duration_sec": 12.199
+        "duration_sec": 16.574
     }
 }

@@ -36,7 +36,7 @@ version = "2.0 (Multi-Engine Enhanced)"
 space = "    "
 lines = space + "-" * 75
 
-validator_url = "https://raw.githubusercontent.com/mishakorzik/MailFinder/main/.validator"
+validator_url = "https://raw.githubusercontent.com/Souvik2biswas/Mailerone/main/.validator"
 
 def cls():
     if sys.platform == 'win32':
@@ -46,14 +46,14 @@ def cls():
 
 def banner():
     print(f'''{b}
-     __   __  _______  ___   ___      _______  ___   __    _  ______   _______  ______
-    |  |_|  ||   _   ||   | |   |    |       ||   | |  |  | ||      | |       ||    _ |
-    |       ||  |_|  ||   | |   |    |    ___||   | |   |_| ||  _    ||    ___||   | ||
-    |       ||       ||   | |   |    |   |___ |   | |       || | |   ||   |___ |   |_||_
-    |       ||       ||   | |   |___ |    ___||   | |  _    || |_|   ||    ___||    __  |
-    | ||_|| ||   _   ||   | |       ||   |    |   | | | |   ||       ||   |___ |   |  | |
-    |_|   |_||__| |__||___| |_______||___|    |___| |_|  |__||______| |_______||___|  |_|{w}''')
-    print(f'                  .:.:;.. {y}MailFinder v{version} (Multi-API Enhanced){w} ..;:.:.')
+     __   __  _______  ___   ___      _______  ______    _______  __    _  _______ 
+    |  |_|  ||   _   ||   | |   |    |       ||    _ |  |       ||  |  | ||       |
+    |       ||  |_|  ||   | |   |    |    ___||   | ||  |   _   ||   |_| ||    ___|
+    |       ||       ||   | |   |    |   |___ |   |_||_ |  | |  ||       ||   |___ 
+    |       ||       ||   | |   |___ |    ___||    __  ||  |_|  ||  _    ||    ___|
+    | ||_|| ||   _   ||   | |       ||   |___ |   |  | ||       || | |   ||   |___ 
+    |_|   |_||__| |__||___| |_______||_______||___|  |_||_______||_|  |__||_______|{w}''')
+    print(f'                  .:.:;.. {y}Mailerone v{version} (Multi-API Enhanced){w} ..;:.:.')
     print(f'\n{space}{b}>> {w}Comprehensive Email Finding, Multi-API Deliverability & OSINT Suite\n')
 
 def pause():
@@ -414,7 +414,7 @@ def main_menu():
         print(f"{space}{b}[{w}8{b}]{w} Search Email via Full Name (Permutation Generator)")
         print(f"{space} {w}|")
         print(f"{space}{b}[{w}9{b}]{w} API Keys Configuration Manager")
-        print(f"{space}{b}[{w}0{b}]{w} Exit MailFinder\n")
+        print(f"{space}{b}[{w}0{b}]{w} Exit Mailerone\n")
 
         choice = input(f"{space}{b}[{w}?{b}]{w} Select an option [0-9]: {b}").strip()
 
