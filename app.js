@@ -194,20 +194,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (gaugeBox) gaugeBox.style.setProperty('--score-pct', score);
     if (gaugeNumber) {
       gaugeNumber.textContent = score;
-      if (score >= 80) gaugeNumber.style.color = 'var(--accent-emerald)';
+      if (score >= 80) gaugeNumber.style.color = 'var(--accent-yellow)';
       else if (score >= 50) gaugeNumber.style.color = 'var(--accent-amber)';
       else gaugeNumber.style.color = 'var(--accent-rose)';
     }
 
-    if (valMx) valMx.innerHTML = hasMx ? '<span style="color:var(--accent-emerald)">Active (Found)</span>' : '<span style="color:var(--accent-rose)">No MX Found</span>';
-    if (valSpf) valSpf.innerHTML = hasMx ? '<span style="color:var(--accent-emerald)">Valid (v=spf1)</span>' : '<span style="color:var(--text-muted)">None</span>';
-    if (valDmarc) valDmarc.innerHTML = hasMx ? '<span style="color:var(--accent-emerald)">Enforced (p=reject)</span>' : '<span style="color:var(--text-muted)">None</span>';
-    if (valDisposable) valDisposable.innerHTML = isBurner ? '<span style="color:var(--accent-rose)">Flagged (Disposable)</span>' : '<span style="color:var(--accent-emerald)">Clean</span>';
-    if (valFree) valFree.innerHTML = isFreeProv ? '<span style="color:var(--accent-amber)">Free Provider</span>' : '<span style="color:var(--accent-cyan)">Corporate / Custom</span>';
+    if (valMx) valMx.innerHTML = hasMx ? '<span style="color:var(--accent-green)">Active (Found)</span>' : '<span style="color:var(--accent-rose)">No MX Found</span>';
+    if (valSpf) valSpf.innerHTML = hasMx ? '<span style="color:var(--accent-green)">Valid (v=spf1)</span>' : '<span style="color:var(--text-muted)">None</span>';
+    if (valDmarc) valDmarc.innerHTML = hasMx ? '<span style="color:var(--accent-green)">Enforced (p=reject)</span>' : '<span style="color:var(--text-muted)">None</span>';
+    if (valDisposable) valDisposable.innerHTML = isBurner ? '<span style="color:var(--accent-rose)">Flagged (Disposable)</span>' : '<span style="color:var(--accent-green)">Clean</span>';
+    if (valFree) valFree.innerHTML = isFreeProv ? '<span style="color:var(--accent-amber)">Free Provider</span>' : '<span style="color:var(--accent-yellow)">Corporate / Custom</span>';
     if (valVerdict) {
       if (score >= 80) valVerdict.innerHTML = '<span class="badge-tag badge-free">DELIVERABLE</span>';
-      else if (score >= 50) valVerdict.innerHTML = '<span class="badge-tag" style="background:rgba(245,158,11,0.2);color:var(--accent-amber)">RISKY / ROLE</span>';
-      else valVerdict.innerHTML = '<span class="badge-tag" style="background:rgba(244,63,94,0.2);color:var(--accent-rose)">UNDELIVERABLE</span>';
+      else if (score >= 50) valVerdict.innerHTML = '<span class="badge-tag" style="background:rgba(245,158,11,0.2);color:var(--accent-amber);border:1px solid rgba(245,158,11,0.35)">RISKY / ROLE</span>';
+      else valVerdict.innerHTML = '<span class="badge-tag" style="background:rgba(244,63,94,0.2);color:var(--accent-rose);border:1px solid rgba(244,63,94,0.35)">UNDELIVERABLE</span>';
     }
 
     showToast(`Calculated score for ${email}: ${score}%`);
@@ -221,35 +221,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const termDemos = {
     scan: [
-      '<span class="t-cyan">$ mailerone --scan admin@microsoft.com</span>',
+      '<span class="t-yellow">$ mailerone --scan admin@microsoft.com</span>',
       '<span class="t-dim">[*] Querying Google DoH & Active MX records...</span>',
       '<span class="t-green">[+] Active MX Records : Found (microsoft-com.mail.protection.outlook.com)</span>',
       '<span class="t-green">[+] SPF & DMARC       : Valid (v=spf1 / DMARC1 p=reject)</span>',
       '<span class="t-green">[+] Disposable Check  : Clean (Passed 8,800+ burner blocklist)</span>',
       '<span class="t-yellow">[*] OSINT Profiler    : Found GitHub Profile (@OWASP)</span>',
-      '<span class="t-cyan">[+] ZeroBounce Check  : SMTP Provider Microsoft (invalid/role)</span>',
+      '<span class="t-lime">[+] ZeroBounce Check  : SMTP Provider Microsoft (invalid/role)</span>',
       '<span class="t-green">------------------------------------------------------------</span>',
-      '<span class="t-green">>> COMPREHENSIVE SCAN SCORE: 85% [DELIVERABLE / ROLE]</span>'
+      '<span class="t-yellow">>> COMPREHENSIVE SCAN SCORE: 85% [DELIVERABLE / ROLE]</span>'
     ],
     find: [
-      '<span class="t-cyan">$ mailerone --find-b2b "Patrick" "Collison" "stripe.com"</span>',
+      '<span class="t-yellow">$ mailerone --find-b2b "Patrick" "Collison" "stripe.com"</span>',
       '<span class="t-dim">[*] Querying Hunter.io, ContactOut, SalesQL, FinalScout & Name2Email...</span>',
       '<span class="t-green">[+] Hunter.io Engine  : Found (patrick@stripe.com, Score: 96%)</span>',
       '<span class="t-green">[+] ContactOut Engine : Found (Work: patrick@stripe.com, Title: CEO)</span>',
       '<span class="t-green">[+] Name2Email Perms  : Generated 34 patterns -> Verified Top Candidate</span>',
       '<span class="t-green">------------------------------------------------------------</span>',
-      '<span class="t-green">>> PRIMARY IDENTIFIED EMAIL: patrick@stripe.com [HIGH CONFIDENCE]</span>'
+      '<span class="t-yellow">>> PRIMARY IDENTIFIED EMAIL: patrick@stripe.com [HIGH CONFIDENCE]</span>'
     ],
     quotas: [
-      '<span class="t-cyan">$ mailerone --quotas --live</span>',
+      '<span class="t-yellow">$ mailerone --quotas --live</span>',
       '<span class="t-dim">[*] Querying real-time quota APIs & remaining balances...</span>',
       '<span class="t-green">[+] Hunter.io    : Free Plan (25 searches remaining, Reset: 2026-10-01)</span>',
       '<span class="t-green">[+] ZeroBounce   : 100 Credits Remaining</span>',
-      '<span class="t-green">[+] DeBounce     : 100 Credits Remaining</span>',
+      '<span class="t-lime">[+] DeBounce     : 100 Credits Remaining</span>',
       '<span class="t-green">[+] GitHub API   : 30 search req/min remaining (Token Mode)</span>',
       '<span class="t-green">[+] ContactOut   : 40 Free Work Emails / mo</span>',
-      '<span class="t-green">[+] SalesQL      : 50 Free Credits / mo</span>',
-      '<span class="t-green">[+] Name2Email   : 100% Free & Unlimited</span>'
+      '<span class="t-lime">[+] SalesQL      : 50 Free Credits / mo</span>',
+      '<span class="t-yellow">[+] Name2Email   : 100% Free & Unlimited</span>'
     ]
   };
 
