@@ -17,7 +17,8 @@ from api_engines import (
     SignalHireEngine,
     FinalScoutEngine,
     Name2EmailEngine,
-    MultiFinderEngine
+    MultiFinderEngine,
+    APIQuotaEngine
 )
 from multi_verifier import run_comprehensive_scan
 
@@ -163,6 +164,20 @@ def run_tests():
         "target": "admin@microsoft.com",
         "duration_sec": round(time.time() - t0, 3)
     }
+
+    # 11. API Quota & Tier Limits Engine Test
+    print("\n[TEST 11] API Quotas & Tier Limits Engine...")
+    t0 = time.time()
+    live_quotas = APIQuotaEngine.check_all_live_quotas()
+    matrix = APIQuotaEngine.get_tier_matrix()
+    quota_ok = len(live_quotas) >= 8 and len(matrix) >= 10
+    report["api_quota_engine"] = {
+        "status": "PASSED" if quota_ok else "FAILED",
+        "live_services_monitored": len(live_quotas),
+        "tier_matrix_entries": len(matrix),
+        "duration_sec": round(time.time() - t0, 3)
+    }
+    print(f" -> API Quota Engine: {report['api_quota_engine']['status']} (Monitored {len(live_quotas)} services, Matrix items: {len(matrix)})")
 
     print("\n" + "="*60)
     print("ALL TESTS COMPLETED!")

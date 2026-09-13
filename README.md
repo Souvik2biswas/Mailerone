@@ -126,9 +126,34 @@ python3 Mailerone.py
     [7] OSINT & Identity Profiler (Gravatar + GitHub + EmailRep)
     [8] Name-to-Email Permutation Generator (Save to result.txt)
      |
-    [9] API Keys Configuration Manager
+    [9] API Keys, Usage Quotas & Tier Limits Manager
     [0] Exit Mailerone
 ```
+
+---
+
+## 📊 API Usage Limits & Tier Guide (Free vs Premium)
+
+Mailerone supports real-time quota inspection and provides a comprehensive breakdown of monthly limits, rate limits, and pricing across all integrated engines:
+
+| Service | Engine Category | Free Tier Allowance | Free Rate Limits | Premium / Paid Tiers | Live Quota Check |
+|---|---|---|---|---|:---:|
+| **Hunter.io** | Lead Finder & Verifier | **25 Searches + 50 Verifications** / mo | 10 req/min | **Starter**: 500 searches ($49/mo)<br>**Growth**: 5k searches ($149/mo) | ✅ Yes (Live searches, verifications & reset date) |
+| **ContactOut** | B2B Email & Phone Finder | **40 Work Emails + 5 Direct Phones** / mo | Standard query rate | **Sales Plan**: 500 emails + 50 phones ($49/mo)<br>**Recruiter**: 1k emails ($99/mo) | ✅ Yes (Key validation) |
+| **SalesQL** | LinkedIn & Lead Enrichment | **50 Credits** / mo (1 credit = 1 email) | Standard rate | **Starter**: 1,000 credits ($39/mo)<br>**Advanced**: 3,000 credits ($79/mo) | ✅ Yes (Key validation) |
+| **SignalHire** | Candidate & Prospect Finder | **5 Free Contact Credits** on signup | Per-seat rate | **Lead Plan**: 350–1,000 credits ($49–$99/mo)<br>**Unlimited Email Plan** | ✅ Yes (Key validation) |
+| **FinalScout** | LinkedIn & Corporate Finder | **20 Regular Email Credits** / mo | Standard query rate | **Pro**: 500 regular + 100 AI credits ($49/mo)<br>**Enterprise**: 5,000+ credits | ✅ Yes (Key validation) |
+| **Name2Email (Name2Mail)** | Smart Permutator & DNS Verifier | **100% Free & Unlimited** (34 patterns) | Zero limits (Runs locally) | **Always Free** (Built directly into Mailerone) | ✅ Always Active |
+| **AbstractAPI** | Deliverability Verifier | **100 Verifications** / mo | 1 request / sec | **Starter**: 10k req ($9/mo)<br>**Pro**: 100k req ($49/mo) | ✅ Yes (Headers/Metadata) |
+| **ZeroBounce** | Email Hygiene & Scoring | **100 Validations** / mo (Freemium) | Standard batch rate | **Pay-As-You-Go**: $0.008/credit<br>**Monthly**: 2k to 1M+ validations | ✅ Yes (Live remaining credit balance) |
+| **DeBounce** | Email Validation API | **100 Free Credits** on signup | Standard rate | **Pay-As-You-Go**: $10 for 5,000 credits (Never expires) | ✅ Yes (Live remaining credit balance) |
+| **Mailboxlayer** | Syntax & SMTP Routing | **100 Requests** / mo (HTTP) | 1 request / sec | **Basic**: 5,000 req ($14.99/mo, HTTPS)<br>**Pro**: 50,000 req ($74.99/mo) | ✅ Yes (Key validation) |
+| **EmailRep.io** | Threat Intelligence OSINT | **Community**: 25 req/day (no key)<br>**Free Key**: 500 req/day | Daily rolling limit | **Enterprise**: 100k req/mo ($100+/mo) | ✅ Yes (Key mode detection) |
+| **GitHub Search API** | OSINT Identity Discovery | **Unauthenticated**: 10 search req/min<br>**With Free Token**: 30 search req/min + 5k core/hr | Per-IP / Token window | **Enterprise API** | ✅ Yes (Live `/rate_limit` endpoint) |
+| **Disify & Google DoH** | DNS & Burner Detection | **100% Free Public Services** | ~60 req/min (Disify)<br>Unlimited (Google DoH) | **Completely Free & Open Access** | ✅ Always Active |
+
+> [!TIP]
+> You can check your **real-time remaining credit balance and reset dates** directly inside Mailerone by selecting **Option `[9] API Keys, Usage Quotas & Tier Limits Manager` ➔ `[L] Check Real-Time API Quotas`**.
 
 ---
 

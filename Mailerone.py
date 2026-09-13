@@ -21,7 +21,8 @@ from api_engines import (
     SignalHireEngine,
     FinalScoutEngine,
     Name2EmailEngine,
-    MultiFinderEngine
+    MultiFinderEngine,
+    APIQuotaEngine
 )
 from multi_verifier import run_comprehensive_scan
 
@@ -538,40 +539,96 @@ def name_finder_menu():
     pause()
 
 # -------------------------------------------------------------
-# 9. API Keys Configuration Manager
+# 9. API Keys, Live Quotas & Tier Limits Manager
 # -------------------------------------------------------------
+def live_quota_inspector_menu():
+    cls()
+    banner()
+    print(f"{space}{p}=== Real-Time API Quotas, Credit Balances & Usage Inspector ==={w}\n")
+    print(f"{space}{b}[*]{w} Querying live quota endpoints across configured APIs...\n")
+    
+    quotas = APIQuotaEngine.check_all_live_quotas()
+    
+    print(w + lines)
+    for service_name, q in quotas.items():
+        if not q.get("success"):
+            print(f"{space}{r}[-] {service_name:<18}{w} : {r}{q.get('error', 'Failed')}{w}")
+        else:
+            if service_name == "Hunter.io":
+                print(f"{space}{g}[+] {service_name:<18}{w} : Plan: {y}{q.get('plan_name')}{w} | Account: {q.get('account_email')}")
+                print(f"{space}    - Searches Left      : {g}{q.get('searches_remaining')}{w} / {q.get('searches_available')} (Used: {q.get('searches_used')})")
+                print(f"{space}    - Verifications Left : {g}{q.get('verifications_remaining')}{w} / {q.get('verifications_available')} (Used: {q.get('verifications_used')})")
+                print(f"{space}    - Monthly Reset Date : {q.get('reset_date')}")
+            elif service_name == "ZeroBounce":
+                print(f"{space}{g}[+] {service_name:<18}{w} : Credits Remaining: {G} {q.get('credits_remaining')} {w} validations")
+            elif service_name == "DeBounce":
+                print(f"{space}{g}[+] {service_name:<18}{w} : Balance Remaining: {G} {q.get('balance')} {w} credits")
+            elif service_name == "GitHub API":
+                print(f"{space}{g}[+] {service_name:<18}{w} : Mode: {y}{q.get('auth_mode')}{w}")
+                print(f"{space}    - Search Rate Limit  : {g}{q.get('search_remaining')}{w} / {q.get('search_limit')} requests remaining")
+                print(f"{space}    - Core Rate Limit    : {g}{q.get('core_remaining')}{w} / {q.get('core_limit')} requests remaining")
+            else:
+                status_text = q.get("status", "Active")
+                print(f"{space}{g}[+] {service_name:<18}{w} : {g}{status_text}{w}")
+    print(w + lines)
+    pause()
+
+def tier_limits_matrix_menu():
+    cls()
+    banner()
+    print(f"{space}{p}=== API Free Tier vs Premium Tier Quota & Usage Limits Matrix ==={w}\n")
+    
+    matrix = APIQuotaEngine.get_tier_matrix()
+    
+    for idx, item in enumerate(matrix, 1):
+        print(f"{space}{B} {idx:02d}. {item['service']} {w} [{y}{item['category']}{w}]")
+        print(f"{space}    {g}* Free Tier Quota      :{w} {item['free_tier']}")
+        print(f"{space}    {y}* Free Rate Limits     :{w} {item['free_limits']}")
+        print(f"{space}    {p}* Premium Tiers        :{w} {item['premium_tier']}")
+        print(f"{space}    {b}* Live Balance Support :{w} {item['live_balance_support']}")
+        print(f"{space}    {d}* Website / Docs       :{w} {item['website']}\n")
+        
+    print(w + lines)
+    pause()
+
 def config_keys_menu():
     while True:
         cls()
         banner()
         cfg = load_config()
-        print(f"{space}{p}=== API Keys Configuration Manager ==={w}\n")
+        print(f"{space}{p}=== API Keys, Usage Quotas & Tier Limits Manager ==={w}\n")
         
         services = [
             ("Hunter.io Keys", "hunter_api_keys", "List of keys (built-in fallback available)"),
-            ("ContactOut Key", "contactout_api_key", "https://contactout.com"),
-            ("SalesQL Key", "salesql_api_key", "https://salesql.com"),
-            ("SignalHire Key", "signalhire_api_key", "https://signalhire.com"),
-            ("FinalScout Key", "finalscout_api_key", "https://finalscout.com"),
-            ("AbstractAPI Key", "abstract_api_key", "https://abstractapi.com"),
-            ("ZeroBounce Key", "zerobounce_api_key", "https://zerobounce.net"),
-            ("Debounce Key", "debounce_api_key", "https://debounce.io"),
-            ("Mailboxlayer Key", "mailboxlayer_api_key", "https://mailboxlayer.com"),
-            ("EmailRep Key", "emailrep_api_key", "https://emailrep.io"),
+            ("ContactOut Key", "contactout_api_key", "https://contactout.com (40 free/mo)"),
+            ("SalesQL Key", "salesql_api_key", "https://salesql.com (50 free/mo)"),
+            ("SignalHire Key", "signalhire_api_key", "https://signalhire.com (5 free/mo)"),
+            ("FinalScout Key", "finalscout_api_key", "https://finalscout.com (20 free/mo)"),
+            ("AbstractAPI Key", "abstract_api_key", "https://abstractapi.com (100 free/mo)"),
+            ("ZeroBounce Key", "zerobounce_api_key", "https://zerobounce.net (100 free/mo)"),
+            ("Debounce Key", "debounce_api_key", "https://debounce.io (100 free credits)"),
+            ("Mailboxlayer Key", "mailboxlayer_api_key", "https://mailboxlayer.com (100 free/mo)"),
+            ("EmailRep Key", "emailrep_api_key", "https://emailrep.io (500 free/day)"),
             ("GitHub Token", "github_token", "Personal Access Token (optional)")
         ]
 
         for i, (name, key_field, info) in enumerate(services, 1):
             val = cfg.get(key_field, "")
             status = f"{g}[Configured]{w}" if val else f"{y}[Empty / Not set]{w}"
-            print(f"{space}{b}[{w}{i}{b}]{w} {name:<22} {status}  ({info})")
+            print(f"{space}{b}[{w}{i:02d}{b}]{w} {name:<22} {status}  ({info})")
 
+        print(f"\n{space}{G} [L] Check Real-Time API Quotas & Remaining Credit Balances {w}")
+        print(f"{space}{B} [T] View Free Tier vs Premium Tier Quota & Usage Limits Matrix {w}")
         print(f"\n{space}{b}[{w}0{b}]{w} Back to Main Menu\n")
-        ch = input(f"{space}{b}[{w}?{b}]{w} Select number to edit key: {b}").strip()
+        ch = input(f"{space}{b}[{w}?{b}]{w} Select option [1-11, L, T, 0]: {b}").strip().upper()
         
         if ch == "0" or not ch:
             break
-        elif ch in [str(x) for x in range(1, len(services) + 1)]:
+        elif ch == "L":
+            live_quota_inspector_menu()
+        elif ch == "T":
+            tier_limits_matrix_menu()
+        elif ch in [str(x) for x in range(1, len(services) + 1)] or ch in [f"{x:02d}" for x in range(1, len(services) + 1)]:
             idx = int(ch) - 1
             s_name, s_field, _ = services[idx]
             new_val = input(f"\n{space}{b}[{w}?{b}]{w} Enter new key for {s_name} (or leave empty to clear): {b}").strip()
@@ -604,7 +661,7 @@ def main_menu():
         print(f"{space}{b}[{w}7{b}]{w} OSINT & Identity Profiler (Gravatar + GitHub + EmailRep)")
         print(f"{space}{b}[{w}8{b}]{w} Name-to-Email Permutation Generator (Save to result.txt)")
         print(f"{space} {w}|")
-        print(f"{space}{b}[{w}9{b}]{w} API Keys Configuration Manager")
+        print(f"{space}{b}[{w}9{b}]{w} API Keys, Usage Quotas & Tier Limits Manager")
         print(f"{space}{b}[{w}0{b}]{w} Exit Mailerone\n")
 
         choice = input(f"{space}{b}[{w}?{b}]{w} Select an option [0-9]: {b}").strip()

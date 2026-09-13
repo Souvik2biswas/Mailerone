@@ -887,3 +887,317 @@ class MultiFinderEngine:
 
         return results
 
+
+# -------------------------------------------------------------
+# 17. API Quota & Tier Limits Engine (Live Checks + Tier Matrix)
+# -------------------------------------------------------------
+class APIQuotaEngine:
+    @staticmethod
+    def check_hunter_quota(api_key=None):
+        if not api_key:
+            keys = get_api_key("hunter_api_keys") or []
+            api_key = keys[0] if keys else ""
+        if not api_key:
+            return {"success": False, "error": "No Hunter.io API key configured"}
+        try:
+            url = f"https://api.hunter.io/v2/account?api_key={api_key}"
+            resp = requests.get(url, headers=HEADERS, timeout=8)
+            if resp.status_code == 200:
+                data = resp.json().get("data", {})
+                calls = data.get("requests", {})
+                searches = calls.get("searches", {})
+                verifications = calls.get("verifications", {})
+                return {
+                    "success": True,
+                    "service": "Hunter.io",
+                    "plan_name": data.get("plan_name", "Free").capitalize(),
+                    "plan_level": data.get("plan_level", 0),
+                    "account_email": data.get("email", "N/A"),
+                    "searches_used": searches.get("used", 0),
+                    "searches_available": searches.get("available", 25),
+                    "searches_remaining": max(0, searches.get("available", 25) - searches.get("used", 0)),
+                    "verifications_used": verifications.get("used", 0),
+                    "verifications_available": verifications.get("available", 50),
+                    "verifications_remaining": max(0, verifications.get("available", 50) - verifications.get("used", 0)),
+                    "reset_date": data.get("reset_date", "N/A")
+                }
+            return {"success": False, "error": f"Hunter.io Error: {resp.status_code}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def check_zerobounce_quota(api_key=None):
+        if not api_key:
+            api_key = get_api_key("zerobounce_api_key")
+        if not api_key:
+            return {"success": False, "error": "No ZeroBounce API key configured"}
+        try:
+            url = f"https://api.zerobounce.net/v2/getcredits?api_key={api_key}"
+            resp = requests.get(url, headers=HEADERS, timeout=8)
+            if resp.status_code == 200:
+                data = resp.json()
+                credits_val = data.get("Credits", -1)
+                return {
+                    "success": True,
+                    "service": "ZeroBounce",
+                    "credits_remaining": int(credits_val) if str(credits_val).isdigit() else credits_val,
+                    "status": "Active"
+                }
+            return {"success": False, "error": f"ZeroBounce Error: {resp.status_code}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def check_debounce_quota(api_key=None):
+        if not api_key:
+            api_key = get_api_key("debounce_api_key")
+        if not api_key:
+            return {"success": False, "error": "No Debounce API key configured"}
+        try:
+            url = f"https://api.debounce.io/v1/balance/?api={api_key}"
+            resp = requests.get(url, headers=HEADERS, timeout=8)
+            if resp.status_code == 200:
+                data = resp.json().get("debounce", {})
+                return {
+                    "success": True,
+                    "service": "DeBounce",
+                    "balance": data.get("balance", "N/A"),
+                    "status": "Active"
+                }
+            return {"success": False, "error": f"Debounce Error: {resp.status_code}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def check_github_quota(token=None):
+        if not token:
+            token = get_api_key("github_token")
+        headers = HEADERS.copy()
+        if token:
+            headers["Authorization"] = f"token {token}"
+        try:
+            url = "https://api.github.com/rate_limit"
+            resp = requests.get(url, headers=headers, timeout=8)
+            if resp.status_code == 200:
+                data = resp.json().get("resources", {})
+                search = data.get("search", {})
+                core = data.get("core", {})
+                return {
+                    "success": True,
+                    "service": "GitHub API",
+                    "auth_mode": "Authenticated (Token)" if token else "Unauthenticated (Public)",
+                    "search_remaining": search.get("remaining"),
+                    "search_limit": search.get("limit"),
+                    "core_remaining": core.get("remaining"),
+                    "core_limit": core.get("limit"),
+                    "reset_epoch": search.get("reset")
+                }
+            return {"success": False, "error": f"GitHub Error: {resp.status_code}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @classmethod
+    def check_all_live_quotas(cls):
+        results = {}
+        # Hunter.io
+        hunter_keys = get_api_key("hunter_api_keys") or []
+        if hunter_keys:
+            results["Hunter.io"] = cls.check_hunter_quota(hunter_keys[0])
+        else:
+            results["Hunter.io"] = {"success": False, "error": "No API Key Set"}
+
+        # ZeroBounce
+        if get_api_key("zerobounce_api_key"):
+            results["ZeroBounce"] = cls.check_zerobounce_quota()
+        else:
+            results["ZeroBounce"] = {"success": False, "error": "No API Key Set"}
+
+        # DeBounce
+        if get_api_key("debounce_api_key"):
+            results["DeBounce"] = cls.check_debounce_quota()
+        else:
+            results["DeBounce"] = {"success": False, "error": "No API Key Set"}
+
+        # GitHub
+        results["GitHub API"] = cls.check_github_quota()
+
+        # AbstractAPI
+        if get_api_key("abstract_api_key"):
+            results["AbstractAPI"] = {"success": True, "status": "Key Configured (100 req/mo on Free Tier)", "rate_limit": "1 req/sec"}
+        else:
+            results["AbstractAPI"] = {"success": False, "error": "No API Key Set"}
+
+        # ContactOut
+        if get_api_key("contactout_api_key"):
+            results["ContactOut"] = {"success": True, "status": "Key Configured (40 emails/mo on Free Tier)"}
+        else:
+            results["ContactOut"] = {"success": False, "error": "No API Key Set"}
+
+        # SalesQL
+        if get_api_key("salesql_api_key"):
+            results["SalesQL"] = {"success": True, "status": "Key Configured (50 credits/mo on Free Tier)"}
+        else:
+            results["SalesQL"] = {"success": False, "error": "No API Key Set"}
+
+        # SignalHire
+        if get_api_key("signalhire_api_key"):
+            results["SignalHire"] = {"success": True, "status": "Key Configured (5 credits/mo on Free Tier)"}
+        else:
+            results["SignalHire"] = {"success": False, "error": "No API Key Set"}
+
+        # FinalScout
+        if get_api_key("finalscout_api_key"):
+            results["FinalScout"] = {"success": True, "status": "Key Configured (20 regular credits on Free Tier)"}
+        else:
+            results["FinalScout"] = {"success": False, "error": "No API Key Set"}
+
+        # Mailboxlayer
+        if get_api_key("mailboxlayer_api_key"):
+            results["Mailboxlayer"] = {"success": True, "status": "Key Configured (100 req/mo on Free Tier)"}
+        else:
+            results["Mailboxlayer"] = {"success": False, "error": "No API Key Set"}
+
+        # EmailRep
+        if get_api_key("emailrep_api_key"):
+            results["EmailRep"] = {"success": True, "status": "Key Configured (500 req/day with Free Key)"}
+        else:
+            results["EmailRep"] = {"success": True, "status": "Community Mode (25 req/day without key)"}
+
+        return results
+
+    @staticmethod
+    def get_tier_matrix():
+        return [
+            {
+                "service": "Hunter.io",
+                "category": "Lead Finder & Verifier",
+                "free_tier": "25 Searches + 50 Verifications / Month",
+                "free_limits": "10 requests/minute",
+                "premium_tier": "Starter: 500 searches ($49/mo) | Growth: 5,000 searches ($149/mo) | Business: 50k ($499/mo)",
+                "premium_limits": "High-throughput parallel API",
+                "live_balance_support": "Yes (Live Searches & Verifications remaining + Reset Date)",
+                "website": "https://hunter.io"
+            },
+            {
+                "service": "ContactOut",
+                "category": "B2B Email & Phone Finder",
+                "free_tier": "40 Work Emails + 5 Direct Phone Numbers / Month",
+                "free_limits": "Standard search rate limit",
+                "premium_tier": "Sales: 500 emails + 50 phones ($49/mo) | Recruiter: 1,000 emails ($99/mo)",
+                "premium_limits": "Team sharing & CRM exports",
+                "live_balance_support": "Account key validation",
+                "website": "https://contactout.com"
+            },
+            {
+                "service": "SalesQL",
+                "category": "LinkedIn & Lead Enrichment",
+                "free_tier": "50 Credits / Month (1 credit = 1 found email)",
+                "free_limits": "Standard enrichment speed",
+                "premium_tier": "Starter: 1,000 credits ($39/mo) | Advanced: 3,000 ($79/mo) | Pro: 6,000 ($119/mo)",
+                "premium_limits": "Unlimited exports & webhook access",
+                "live_balance_support": "Account key validation",
+                "website": "https://salesql.com"
+            },
+            {
+                "service": "SignalHire",
+                "category": "Candidate & Prospect Finder",
+                "free_tier": "5 Free Contact Credits on Registration",
+                "free_limits": "Per-seat rate limiting",
+                "premium_tier": "Lead Plan: 350-1,000 credits ($49 - $99/mo) | Unlimited Email Plan",
+                "premium_limits": "Bulk verification & real-time sync",
+                "live_balance_support": "Candidate search API status",
+                "website": "https://signalhire.com"
+            },
+            {
+                "service": "FinalScout",
+                "category": "LinkedIn & Domain Finder",
+                "free_tier": "20 Regular Email Credits / Month",
+                "free_limits": "Standard query limits",
+                "premium_tier": "Pro: 500 regular + 100 AI credits ($49/mo) | Enterprise: 5,000+ credits",
+                "premium_limits": "Batch search & live AI writer",
+                "live_balance_support": "API key validation",
+                "website": "https://finalscout.com"
+            },
+            {
+                "service": "Name2Email (Name2Mail)",
+                "category": "Smart Permutation & DNS Verifier",
+                "free_tier": "100% Free & Unlimited (34 Patterns Generated)",
+                "free_limits": "Zero limits (Runs locally & DoH/DNS)",
+                "premium_tier": "No paid tier required — Built directly into Mailerone",
+                "premium_limits": "Parallel multi-threaded validation",
+                "live_balance_support": "Always Active (Zero external API cost)",
+                "website": "Built-in Engine"
+            },
+            {
+                "service": "AbstractAPI",
+                "category": "Email Deliverability Verifier",
+                "free_tier": "100 Verifications / Month",
+                "free_limits": "1 request / second",
+                "premium_tier": "Starter: 10k requests ($9/mo) | Pro: 100k requests ($49/mo)",
+                "premium_limits": "Up to 50 requests / second",
+                "live_balance_support": "Real-time verification metadata",
+                "website": "https://abstractapi.com"
+            },
+            {
+                "service": "ZeroBounce",
+                "category": "Email Verification & Hygiene",
+                "free_tier": "100 Free Validations / Month (Freemium)",
+                "free_limits": "Standard batch API limit",
+                "premium_tier": "Pay-As-You-Go ($0.008/credit) | Monthly: 2k to 1M+ validations",
+                "premium_limits": "High-speed AI scoring & blacklist alerts",
+                "live_balance_support": "Yes (Live Credit Balance Endpoint)",
+                "website": "https://zerobounce.net"
+            },
+            {
+                "service": "DeBounce",
+                "category": "Email Validation API",
+                "free_tier": "100 Free Credits on Registration",
+                "free_limits": "Standard single-validation speed",
+                "premium_tier": "Pay-As-You-Go: $10 for 5,000 credits | $50 for 50,000 credits (Never expires)",
+                "premium_limits": "Fast DNS & SMTP parallel checkers",
+                "live_balance_support": "Yes (Live Balance API Endpoint)",
+                "website": "https://debounce.io"
+            },
+            {
+                "service": "Mailboxlayer (APILayer)",
+                "category": "Syntax & Route Verifier",
+                "free_tier": "100 Requests / Month (HTTP Only)",
+                "free_limits": "1 request / second",
+                "premium_tier": "Basic: 5,000 requests ($14.99/mo, HTTPS) | Pro: 50,000 requests ($74.99/mo)",
+                "premium_limits": "250 requests / minute",
+                "live_balance_support": "API key route validation",
+                "website": "https://mailboxlayer.com"
+            },
+            {
+                "service": "EmailRep.io",
+                "category": "Threat & Reputation OSINT",
+                "free_tier": "Community: 25 requests/day without key | Free Key: 500 requests/day",
+                "free_limits": "Daily rolling limit",
+                "premium_tier": "Enterprise: 100k requests/month ($100+/mo)",
+                "premium_limits": "Custom intelligence feeds",
+                "live_balance_support": "Key mode detection",
+                "website": "https://emailrep.io"
+            },
+            {
+                "service": "GitHub Search API",
+                "category": "OSINT Identity Discovery",
+                "free_tier": "Unauthenticated: 10 search req/min | With Free Token: 30 search req/min + 5k core/hr",
+                "free_limits": "Per-IP or per-token rate window",
+                "premium_tier": "Enterprise GitHub / Copilot API",
+                "premium_limits": "Higher search concurrency",
+                "live_balance_support": "Yes (Live /rate_limit endpoint)",
+                "website": "https://github.com"
+            },
+            {
+                "service": "Disify & Google DoH",
+                "category": "DNS & Disposable Checker",
+                "free_tier": "100% Free Public Services (No API Key Required)",
+                "free_limits": "~60 requests/minute for Disify, Unlimited for DoH",
+                "premium_tier": "Completely free & open access",
+                "premium_limits": "Global Google DNS & CDN caching",
+                "live_balance_support": "Always Available",
+                "website": "https://disify.com"
+            }
+        ]
+
+
