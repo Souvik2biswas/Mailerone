@@ -1,8 +1,5 @@
 # 📧 Mailerone
 
-<p align="center">
-  <img src="IMG_20211107_192618.jpg" alt="Mailerone Banner" width="85%" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);"/>
-</p>
 
 <p align="center">
   <strong>Comprehensive Email Finding, Multi-API Deliverability Verification & OSINT Suite</strong>
