@@ -310,4 +310,122 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (tableSearch) tableSearch.addEventListener('input', filterMatrix);
   if (tableFilter) tableFilter.addEventListener('change', filterMatrix);
+
+  // 8. API Keys & Engine Configuration Manager
+  const keyMap = {
+    'key-hunter': 'hunter_api_keys',
+    'key-contactout': 'contactout_api_key',
+    'key-salesql': 'salesql_api_key',
+    'key-signalhire': 'signalhire_api_key',
+    'key-finalscout': 'finalscout_api_key',
+    'key-abstract': 'abstract_api_key',
+    'key-zerobounce': 'zerobounce_api_key',
+    'key-debounce': 'debounce_api_key',
+    'key-mailboxlayer': 'mailboxlayer_api_key',
+    'key-emailrep': 'emailrep_api_key',
+    'key-github': 'github_token'
+  };
+
+  // Load saved keys from localStorage
+  function loadStoredKeys() {
+    try {
+      const saved = localStorage.getItem('mailerone_keys');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        Object.keys(keyMap).forEach(elemId => {
+          const field = keyMap[elemId];
+          const inputElem = document.getElementById(elemId);
+          if (inputElem && parsed[field] !== undefined) {
+            if (Array.isArray(parsed[field])) {
+              inputElem.value = parsed[field].join(', ');
+            } else {
+              inputElem.value = parsed[field] || '';
+            }
+          }
+        });
+      }
+    } catch (e) {
+      console.warn('Could not load keys from localStorage', e);
+    }
+  }
+
+  loadStoredKeys();
+
+  // Show / Hide Key Visibility Toggle
+  document.querySelectorAll('.toggle-key-visibility').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('data-target');
+      const targetInput = document.getElementById(targetId);
+      if (targetInput) {
+        if (targetInput.type === 'password') {
+          targetInput.type = 'text';
+          btn.textContent = '🔒';
+        } else {
+          targetInput.type = 'password';
+          btn.textContent = '👁️';
+        }
+      }
+    });
+  });
+
+  // Save Keys to Local Storage
+  const btnSaveKeys = document.getElementById('btn-save-keys');
+  if (btnSaveKeys) {
+    btnSaveKeys.addEventListener('click', () => {
+      const configObj = {};
+      Object.keys(keyMap).forEach(elemId => {
+        const field = keyMap[elemId];
+        const val = (document.getElementById(elemId)?.value || '').trim();
+        if (field === 'hunter_api_keys') {
+          configObj[field] = val ? val.split(',').map(s => s.trim()).filter(Boolean) : [];
+        } else {
+          configObj[field] = val;
+        }
+      });
+
+      localStorage.setItem('mailerone_keys', JSON.stringify(configObj));
+      showToast('API Keys saved successfully to local storage!');
+    });
+  }
+
+  // Export config.json
+  const btnExportConfig = document.getElementById('btn-export-config');
+  if (btnExportConfig) {
+    btnExportConfig.addEventListener('click', () => {
+      const configObj = {};
+      Object.keys(keyMap).forEach(elemId => {
+        const field = keyMap[elemId];
+        const val = (document.getElementById(elemId)?.value || '').trim();
+        if (field === 'hunter_api_keys') {
+          configObj[field] = val ? val.split(',').map(s => s.trim()).filter(Boolean) : [];
+        } else {
+          configObj[field] = val;
+        }
+      });
+
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(configObj, null, 4));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute('href', dataStr);
+      downloadAnchor.setAttribute('download', 'config.json');
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast('Exported config.json for Mailerone CLI!');
+    });
+  }
+
+  // Clear all keys
+  const btnClearKeys = document.getElementById('btn-clear-keys');
+  if (btnClearKeys) {
+    btnClearKeys.addEventListener('click', () => {
+      if (confirm('Are you sure you want to clear all entered API keys?')) {
+        Object.keys(keyMap).forEach(elemId => {
+          const inputElem = document.getElementById(elemId);
+          if (inputElem) inputElem.value = '';
+        });
+        localStorage.removeItem('mailerone_keys');
+        showToast('All API Keys have been cleared.');
+      }
+    });
+  }
 });

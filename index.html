@@ -119,6 +119,9 @@
         <button class="tab-btn" data-tab="tab-live-quotas" id="tab-btn-live-quotas">
           <span>📊 Live Quota Inspector</span>
         </button>
+        <button class="tab-btn" data-tab="tab-keys" id="tab-btn-keys">
+          <span>🔑 API Keys &amp; Config</span>
+        </button>
       </div>
 
       <!-- Tab 1: Name2Email Permutator -->
@@ -286,6 +289,119 @@
               <div class="score-item-val" style="color:var(--accent-yellow);">30 req/min (Token Mode)</div>
               <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Live `/rate_limit` endpoint</div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 5: API Keys & Config Manager -->
+      <div class="tab-pane" id="tab-keys">
+        <div class="playground-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px; flex-wrap:wrap; gap:12px;">
+            <div>
+              <h3 style="font-size: 1.4rem;">API Keys &amp; Engine Configuration Manager</h3>
+              <p style="color:var(--text-muted); font-size:0.9rem;">Configure, update, or clear API keys directly in your browser. Export automatically to <code>config.json</code>.</p>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-secondary" id="btn-export-config">📥 Download config.json</button>
+              <button class="btn btn-primary" id="btn-save-keys">💾 Save API Keys</button>
+            </div>
+          </div>
+
+          <div class="grid-form" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+            <div class="form-group">
+              <label class="form-label">Hunter.io API Key(s)</label>
+              <div style="display:flex; gap:8px;">
+                <input type="password" id="key-hunter" class="form-input key-field" placeholder="Enter Hunter.io API key">
+                <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-hunter" style="padding:0 12px;">👁️</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">ContactOut API Key</label>
+              <div style="display:flex; gap:8px;">
+                <input type="password" id="key-contactout" class="form-input key-field" placeholder="Enter ContactOut token">
+                <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-contactout" style="padding:0 12px;">👁️</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">SalesQL API Key</label>
+              <div style="display:flex; gap:8px;">
+                <input type="password" id="key-salesql" class="form-input key-field" placeholder="Enter SalesQL API key">
+                <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-salesql" style="padding:0 12px;">👁️</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">SignalHire API Key</label>
+              <div style="display:flex; gap:8px;">
+                <input type="password" id="key-signalhire" class="form-input key-field" placeholder="Enter SignalHire apiKey">
+                <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-signalhire" style="padding:0 12px;">👁️</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">FinalScout API Key</label>
+              <div style="display:flex; gap:8px;">
+                <input type="password" id="key-finalscout" class="form-input key-field" placeholder="Enter FinalScout API key">
+                <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-finalscout" style="padding:0 12px;">👁️</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">AbstractAPI Key</label>
+              <div style="display:flex; gap:8px;">
+                <input type="password" id="key-abstract" class="form-input key-field" placeholder="Enter AbstractAPI key">
+                <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-abstract" style="padding:0 12px;">👁️</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">ZeroBounce API Key</label>
+              <div style="display:flex; gap:8px;">
+                <input type="password" id="key-zerobounce" class="form-input key-field" placeholder="Enter ZeroBounce key">
+                <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-zerobounce" style="padding:0 12px;">👁️</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">DeBounce API Key</label>
+              <div style="display:flex; gap:8px;">
+                <input type="password" id="key-debounce" class="form-input key-field" placeholder="Enter DeBounce key">
+                <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-debounce" style="padding:0 12px;">👁️</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Mailboxlayer API Key</label>
+              <div style="display:flex; gap:8px;">
+                <input type="password" id="key-mailboxlayer" class="form-input key-field" placeholder="Enter Mailboxlayer key">
+                <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-mailboxlayer" style="padding:0 12px;">👁️</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">EmailRep API Key</label>
+              <div style="display:flex; gap:8px;">
+                <input type="password" id="key-emailrep" class="form-input key-field" placeholder="Enter EmailRep key (or blank for Community)">
+                <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-emailrep" style="padding:0 12px;">👁️</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">GitHub Access Token</label>
+              <div style="display:flex; gap:8px;">
+                <input type="password" id="key-github" class="form-input key-field" placeholder="Enter personal token (ghp_...)">
+                <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-github" style="padding:0 12px;">👁️</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding-top:16px; border-top:1px solid var(--border-subtle);">
+            <span style="font-size:0.85rem; color:var(--accent-yellow-light);">🔐 Keys are stored safely in local browser storage and used for client-side API evaluation.</span>
+            <button class="btn btn-secondary" id="btn-clear-keys" style="color:var(--accent-rose); border-color:rgba(244,63,94,0.3);">
+              🗑️ Clear All Keys
+            </button>
           </div>
         </div>
       </div>
