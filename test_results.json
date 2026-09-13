@@ -8,40 +8,40 @@
         "mx_count": 1,
         "spf_found": true,
         "dmarc_found": true,
-        "duration_sec": 1.644
+        "duration_sec": 1.494
     },
     "disposable_blocklist": {
         "status": "PASSED",
         "blocklist_size": 8814,
-        "duration_sec": 0.963
+        "duration_sec": 0.875
     },
     "disify_api": {
         "status": "PASSED",
         "dns": true,
         "free_provider": false,
         "role_account": true,
-        "duration_sec": 1.451
+        "duration_sec": 1.381
     },
     "osint_profilers": {
         "status": "PASSED",
         "gravatar_found": true,
         "github_found": true,
         "github_user": "libJNI",
-        "duration_sec": 3.207
+        "duration_sec": 2.688
     },
     "hunter_engine": {
-        "status": "SKIPPED/UNAUTHORIZED",
-        "result": null,
-        "score": null,
-        "error": "Hunter Error: 401",
-        "duration_sec": 1.606
+        "status": "PASSED",
+        "result": "risky",
+        "score": 78,
+        "error": null,
+        "duration_sec": 2.144
     },
     "name2email_engine": {
         "status": "PASSED",
         "total_generated": 33,
         "candidates_found": 29,
         "primary_candidate": "satya.nadella@microsoft.com",
-        "duration_sec": 12.173
+        "duration_sec": 11.786
     },
     "b2b_lead_engines": {
         "status": "PASSED",
@@ -49,7 +49,7 @@
         "salesql_handled": true,
         "signalhire_handled": true,
         "finalscout_handled": true,
-        "duration_sec": 2.874
+        "duration_sec": 3.587
     },
     "multifinder_pipeline": {
         "status": "PASSED",
@@ -61,18 +61,18 @@
             "FinalScout",
             "Name2Email (Smart Permutator)"
         ],
-        "emails_identified": 0,
-        "duration_sec": 14.643
+        "emails_identified": 3,
+        "duration_sec": 20.256
     },
     "multi_verifier_scan": {
         "status": "PASSED",
         "target": "admin@microsoft.com",
-        "duration_sec": 15.457
+        "duration_sec": 15.013
     },
     "api_quota_engine": {
         "status": "PASSED",
         "live_services_monitored": 11,
         "tier_matrix_entries": 13,
-        "duration_sec": 3.446
+        "duration_sec": 5.605
     }
 }

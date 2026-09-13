@@ -243,13 +243,14 @@ document.addEventListener('DOMContentLoaded', () => {
     quotas: [
       '<span class="t-yellow">$ mailerone --quotas --live</span>',
       '<span class="t-dim">[*] Querying real-time quota APIs & remaining balances...</span>',
-      '<span class="t-green">[+] Hunter.io    : Free Plan (25 searches remaining, Reset: 2026-10-01)</span>',
-      '<span class="t-green">[+] ZeroBounce   : 100 Credits Remaining</span>',
-      '<span class="t-lime">[+] DeBounce     : 100 Credits Remaining</span>',
-      '<span class="t-green">[+] GitHub API   : 30 search req/min remaining (Token Mode)</span>',
-      '<span class="t-green">[+] ContactOut   : 40 Free Work Emails / mo</span>',
-      '<span class="t-lime">[+] SalesQL      : 50 Free Credits / mo</span>',
-      '<span class="t-yellow">[+] Name2Email   : 100% Free & Unlimited</span>'
+      '<span class="t-green">[+] Hunter.io    : Free Plan (25 searches / 50 verifs left, Reset: 1st of month)</span>',
+      '<span class="t-green">[+] ContactOut   : Free Plan (40 Work Emails + 5 Direct Phones remaining)</span>',
+      '<span class="t-lime">[+] SalesQL      : Free Plan (50 / 50 Credits remaining, Reset: Monthly)</span>',
+      '<span class="t-green">[+] SignalHire   : Free Starter (5 Contact Credits active)</span>',
+      '<span class="t-yellow">[+] FinalScout   : Free Plan (20 Regular + 10 AI Credits remaining)</span>',
+      '<span class="t-lime">[+] ZeroBounce   : 100 Validations remaining / month</span>',
+      '<span class="t-green">[+] DeBounce     : 100 Credits remaining (Lifetime)</span>',
+      '<span class="t-yellow">[+] Name2Email   : 100% Free & Unlimited (Zero external API cost)</span>'
     ]
   };
 

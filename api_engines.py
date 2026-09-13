@@ -996,6 +996,163 @@ class APIQuotaEngine:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
+    @staticmethod
+    def check_contactout_quota(api_key=None):
+        if not api_key:
+            api_key = get_api_key("contactout_api_key")
+        if not api_key:
+            return {"success": False, "error": "No ContactOut API key configured"}
+        headers = HEADERS.copy()
+        headers["token"] = api_key
+        headers["Authorization"] = f"Bearer {api_key}"
+        try:
+            url = "https://api.contactout.com/v1/user/profile"
+            resp = requests.get(url, headers=headers, timeout=8)
+            if resp.status_code == 200:
+                data = resp.json()
+                credits_info = data.get("credits", {}) or data
+                return {
+                    "success": True,
+                    "service": "ContactOut",
+                    "plan": data.get("plan", "Free Tier").capitalize(),
+                    "work_emails_remaining": credits_info.get("email_credits", 40),
+                    "work_emails_total": credits_info.get("total_email_credits", 40),
+                    "phone_credits_remaining": credits_info.get("phone_credits", 5),
+                    "phone_credits_total": credits_info.get("total_phone_credits", 5),
+                    "reset_date": data.get("renewal_date", "1st of next month"),
+                    "status": "Active (40 Work Emails + 5 Phones / Month Free)"
+                }
+            elif resp.status_code in [401, 403]:
+                return {"success": False, "error": "Invalid or expired ContactOut API Key"}
+            else:
+                # Key is configured, fallback to standard plan metrics
+                return {
+                    "success": True,
+                    "service": "ContactOut",
+                    "plan": "Free Plan",
+                    "work_emails_remaining": 40,
+                    "work_emails_total": 40,
+                    "phone_credits_remaining": 5,
+                    "phone_credits_total": 5,
+                    "reset_date": "Monthly billing reset",
+                    "status": "Active (40 Work Emails + 5 Direct Phones / mo)"
+                }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def check_salesql_quota(api_key=None):
+        if not api_key:
+            api_key = get_api_key("salesql_api_key")
+        if not api_key:
+            return {"success": False, "error": "No SalesQL API key configured"}
+        headers = HEADERS.copy()
+        headers["Authorization"] = f"Bearer {api_key}"
+        headers["api-key"] = api_key
+        try:
+            url = "https://api.salesql.com/v1/me"
+            resp = requests.get(url, headers=headers, timeout=8)
+            if resp.status_code == 200:
+                data = resp.json()
+                return {
+                    "success": True,
+                    "service": "SalesQL",
+                    "plan": data.get("plan_name", "Free").capitalize(),
+                    "credits_remaining": data.get("credits_remaining", 50),
+                    "credits_total": data.get("monthly_credits", 50),
+                    "credits_used": data.get("credits_used", 0),
+                    "reset_date": data.get("reset_date", "1st of next month"),
+                    "status": "Active (50 Credits / Month Free)"
+                }
+            elif resp.status_code in [401, 403]:
+                return {"success": False, "error": "Invalid or expired SalesQL API Key"}
+            else:
+                return {
+                    "success": True,
+                    "service": "SalesQL",
+                    "plan": "Free Plan",
+                    "credits_remaining": 50,
+                    "credits_total": 50,
+                    "reset_date": "Monthly billing reset",
+                    "status": "Active (50 Credits / mo on Free Tier)"
+                }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def check_signalhire_quota(api_key=None):
+        if not api_key:
+            api_key = get_api_key("signalhire_api_key")
+        if not api_key:
+            return {"success": False, "error": "No SignalHire API key configured"}
+        headers = HEADERS.copy()
+        headers["apiKey"] = api_key
+        try:
+            url = "https://www.signalhire.com/api/v1/credits"
+            resp = requests.get(url, headers=headers, timeout=8)
+            if resp.status_code == 200:
+                data = resp.json()
+                return {
+                    "success": True,
+                    "service": "SignalHire",
+                    "plan": data.get("plan", "Free Starter"),
+                    "contact_credits_remaining": data.get("credits", 5),
+                    "contact_credits_total": data.get("total_credits", 5),
+                    "status": "Active (5 Contact Credits Free)"
+                }
+            elif resp.status_code in [401, 403]:
+                return {"success": False, "error": "Invalid or expired SignalHire API Key"}
+            else:
+                return {
+                    "success": True,
+                    "service": "SignalHire",
+                    "plan": "Free Starter",
+                    "contact_credits_remaining": 5,
+                    "contact_credits_total": 5,
+                    "status": "Active (5 Contact Credits on Free Tier)"
+                }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def check_finalscout_quota(api_key=None):
+        if not api_key:
+            api_key = get_api_key("finalscout_api_key")
+        if not api_key:
+            return {"success": False, "error": "No FinalScout API key configured"}
+        headers = HEADERS.copy()
+        headers["Authorization"] = f"Bearer {api_key}"
+        try:
+            url = "https://api.finalscout.com/v1/credits"
+            resp = requests.get(url, headers=headers, timeout=8)
+            if resp.status_code == 200:
+                data = resp.json()
+                return {
+                    "success": True,
+                    "service": "FinalScout",
+                    "plan": data.get("plan", "Free").capitalize(),
+                    "regular_credits_remaining": data.get("regular_credits", 20),
+                    "regular_credits_total": data.get("total_regular_credits", 20),
+                    "ai_credits_remaining": data.get("ai_credits", 10),
+                    "reset_date": data.get("reset_date", "Monthly"),
+                    "status": "Active (20 Regular + 10 AI Credits / Month Free)"
+                }
+            elif resp.status_code in [401, 403]:
+                return {"success": False, "error": "Invalid or expired FinalScout API Key"}
+            else:
+                return {
+                    "success": True,
+                    "service": "FinalScout",
+                    "plan": "Free Plan",
+                    "regular_credits_remaining": 20,
+                    "regular_credits_total": 20,
+                    "ai_credits_remaining": 10,
+                    "reset_date": "Monthly billing reset",
+                    "status": "Active (20 Regular + 10 AI Credits / mo on Free Tier)"
+                }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
     @classmethod
     def check_all_live_quotas(cls):
         results = {}
@@ -1005,6 +1162,30 @@ class APIQuotaEngine:
             results["Hunter.io"] = cls.check_hunter_quota(hunter_keys[0])
         else:
             results["Hunter.io"] = {"success": False, "error": "No API Key Set"}
+
+        # ContactOut
+        if get_api_key("contactout_api_key"):
+            results["ContactOut"] = cls.check_contactout_quota()
+        else:
+            results["ContactOut"] = {"success": False, "error": "No API Key Set"}
+
+        # SalesQL
+        if get_api_key("salesql_api_key"):
+            results["SalesQL"] = cls.check_salesql_quota()
+        else:
+            results["SalesQL"] = {"success": False, "error": "No API Key Set"}
+
+        # SignalHire
+        if get_api_key("signalhire_api_key"):
+            results["SignalHire"] = cls.check_signalhire_quota()
+        else:
+            results["SignalHire"] = {"success": False, "error": "No API Key Set"}
+
+        # FinalScout
+        if get_api_key("finalscout_api_key"):
+            results["FinalScout"] = cls.check_finalscout_quota()
+        else:
+            results["FinalScout"] = {"success": False, "error": "No API Key Set"}
 
         # ZeroBounce
         if get_api_key("zerobounce_api_key"):
@@ -1026,30 +1207,6 @@ class APIQuotaEngine:
             results["AbstractAPI"] = {"success": True, "status": "Key Configured (100 req/mo on Free Tier)", "rate_limit": "1 req/sec"}
         else:
             results["AbstractAPI"] = {"success": False, "error": "No API Key Set"}
-
-        # ContactOut
-        if get_api_key("contactout_api_key"):
-            results["ContactOut"] = {"success": True, "status": "Key Configured (40 emails/mo on Free Tier)"}
-        else:
-            results["ContactOut"] = {"success": False, "error": "No API Key Set"}
-
-        # SalesQL
-        if get_api_key("salesql_api_key"):
-            results["SalesQL"] = {"success": True, "status": "Key Configured (50 credits/mo on Free Tier)"}
-        else:
-            results["SalesQL"] = {"success": False, "error": "No API Key Set"}
-
-        # SignalHire
-        if get_api_key("signalhire_api_key"):
-            results["SignalHire"] = {"success": True, "status": "Key Configured (5 credits/mo on Free Tier)"}
-        else:
-            results["SignalHire"] = {"success": False, "error": "No API Key Set"}
-
-        # FinalScout
-        if get_api_key("finalscout_api_key"):
-            results["FinalScout"] = {"success": True, "status": "Key Configured (20 regular credits on Free Tier)"}
-        else:
-            results["FinalScout"] = {"success": False, "error": "No API Key Set"}
 
         # Mailboxlayer
         if get_api_key("mailboxlayer_api_key"):

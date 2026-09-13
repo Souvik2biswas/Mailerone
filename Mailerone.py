@@ -559,6 +559,20 @@ def live_quota_inspector_menu():
                 print(f"{space}    - Searches Left      : {g}{q.get('searches_remaining')}{w} / {q.get('searches_available')} (Used: {q.get('searches_used')})")
                 print(f"{space}    - Verifications Left : {g}{q.get('verifications_remaining')}{w} / {q.get('verifications_available')} (Used: {q.get('verifications_used')})")
                 print(f"{space}    - Monthly Reset Date : {q.get('reset_date')}")
+            elif service_name == "ContactOut":
+                print(f"{space}{g}[+] {service_name:<18}{w} : Plan: {y}{q.get('plan', 'Free Tier')}{w} | Reset: {q.get('reset_date', 'Monthly')}")
+                print(f"{space}    - Work Emails Left   : {g}{q.get('work_emails_remaining', 40)}{w} / {q.get('work_emails_total', 40)} per month")
+                print(f"{space}    - Direct Phone Left  : {g}{q.get('phone_credits_remaining', 5)}{w} / {q.get('phone_credits_total', 5)} per month")
+            elif service_name == "SalesQL":
+                print(f"{space}{g}[+] {service_name:<18}{w} : Plan: {y}{q.get('plan', 'Free')}{w} | Reset: {q.get('reset_date', 'Monthly')}")
+                print(f"{space}    - Credits Remaining  : {G}{q.get('credits_remaining', 50)}{w} / {q.get('credits_total', 50)} credits/month")
+            elif service_name == "SignalHire":
+                print(f"{space}{g}[+] {service_name:<18}{w} : Plan: {y}{q.get('plan', 'Free Starter')}{w}")
+                print(f"{space}    - Contact Credits    : {G}{q.get('contact_credits_remaining', 5)}{w} / {q.get('contact_credits_total', 5)} available")
+            elif service_name == "FinalScout":
+                print(f"{space}{g}[+] {service_name:<18}{w} : Plan: {y}{q.get('plan', 'Free')}{w} | Reset: {q.get('reset_date', 'Monthly')}")
+                print(f"{space}    - Regular Email Left : {g}{q.get('regular_credits_remaining', 20)}{w} / {q.get('regular_credits_total', 20)} credits")
+                print(f"{space}    - AI Email Credits   : {g}{q.get('ai_credits_remaining', 10)}{w} credits")
             elif service_name == "ZeroBounce":
                 print(f"{space}{g}[+] {service_name:<18}{w} : Credits Remaining: {G} {q.get('credits_remaining')} {w} validations")
             elif service_name == "DeBounce":

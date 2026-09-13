@@ -144,10 +144,10 @@ Mailerone supports real-time quota inspection and provides a comprehensive break
 | Service | Engine Category | Free Tier Allowance | Free Rate Limits | Premium / Paid Tiers | Live Quota Check |
 |---|---|---|---|---|:---:|
 | **Hunter.io** | Lead Finder & Verifier | **25 Searches + 50 Verifications** / mo | 10 req/min | **Starter**: 500 searches ($49/mo)<br>**Growth**: 5k searches ($149/mo) | ✅ Yes (Live searches, verifications & reset date) |
-| **ContactOut** | B2B Email & Phone Finder | **40 Work Emails + 5 Direct Phones** / mo | Standard query rate | **Sales Plan**: 500 emails + 50 phones ($49/mo)<br>**Recruiter**: 1k emails ($99/mo) | ✅ Yes (Key validation) |
-| **SalesQL** | LinkedIn & Lead Enrichment | **50 Credits** / mo (1 credit = 1 email) | Standard rate | **Starter**: 1,000 credits ($39/mo)<br>**Advanced**: 3,000 credits ($79/mo) | ✅ Yes (Key validation) |
-| **SignalHire** | Candidate & Prospect Finder | **5 Free Contact Credits** on signup | Per-seat rate | **Lead Plan**: 350–1,000 credits ($49–$99/mo)<br>**Unlimited Email Plan** | ✅ Yes (Key validation) |
-| **FinalScout** | LinkedIn & Corporate Finder | **20 Regular Email Credits** / mo | Standard query rate | **Pro**: 500 regular + 100 AI credits ($49/mo)<br>**Enterprise**: 5,000+ credits | ✅ Yes (Key validation) |
+| **ContactOut** | B2B Email & Phone Finder | **40 Work Emails + 5 Direct Phones** / mo | Standard query rate | **Sales Plan**: 500 emails + 50 phones ($49/mo)<br>**Recruiter**: 1k emails ($99/mo) | ✅ Yes (Live Work Emails & Direct Phones balance) |
+| **SalesQL** | LinkedIn & Lead Enrichment | **50 Credits** / mo (1 credit = 1 email) | Standard rate | **Starter**: 1,000 credits ($39/mo)<br>**Advanced**: 3,000 credits ($79/mo) | ✅ Yes (Live Monthly Credits & Usage balance) |
+| **SignalHire** | Candidate & Prospect Finder | **5 Free Contact Credits** on signup | Per-seat rate | **Lead Plan**: 350–1,000 credits ($49–$99/mo)<br>**Unlimited Email Plan** | ✅ Yes (Live Contact Credits balance) |
+| **FinalScout** | LinkedIn & Corporate Finder | **20 Regular Email Credits** / mo | Standard query rate | **Pro**: 500 regular + 100 AI credits ($49/mo)<br>**Enterprise**: 5,000+ credits | ✅ Yes (Live Regular & AI Credits balance) |
 | **Name2Email (Name2Mail)** | Smart Permutator & DNS Verifier | **100% Free & Unlimited** (34 patterns) | Zero limits (Runs locally) | **Always Free** (Built directly into Mailerone) | ✅ Always Active |
 | **AbstractAPI** | Deliverability Verifier | **100 Verifications** / mo | 1 request / sec | **Starter**: 10k req ($9/mo)<br>**Pro**: 100k req ($49/mo) | ✅ Yes (Headers/Metadata) |
 | **ZeroBounce** | Email Hygiene & Scoring | **100 Validations** / mo (Freemium) | Standard batch rate | **Pay-As-You-Go**: $0.008/credit<br>**Monthly**: 2k to 1M+ validations | ✅ Yes (Live remaining credit balance) |

@@ -242,28 +242,48 @@
       <!-- Tab 4: Live Quotas -->
       <div class="tab-pane" id="tab-live-quotas">
         <div class="playground-card">
-          <h3 style="font-size: 1.4rem; margin-bottom: 8px;">Real-Time Quota & Balance Monitoring</h3>
-          <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 24px;">Monitor your active API keys, credit balances, rate limits, and billing renewal dates.</p>
+          <h3 style="font-size: 1.4rem; margin-bottom: 8px;">Real-Time Quota &amp; Balance Monitoring</h3>
+          <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 24px;">Monitor your active API keys, credit balances, rate limits, and billing renewal dates across B2B finders and verifiers.</p>
 
-          <div class="features-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+          <div class="features-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
             <div class="score-item">
               <div class="score-item-title">Hunter.io Live Quota</div>
               <div class="score-item-val" style="color:var(--accent-green);">25 Searches / 50 Verifs Left</div>
               <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Monthly Reset: Day 1 of month</div>
             </div>
             <div class="score-item">
+              <div class="score-item-title">ContactOut Balance</div>
+              <div class="score-item-val" style="color:var(--accent-yellow);">40 Work Emails + 5 Phones</div>
+              <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Free Monthly Tier (Live Profile)</div>
+            </div>
+            <div class="score-item">
+              <div class="score-item-title">SalesQL Credits</div>
+              <div class="score-item-val" style="color:var(--accent-lime);">50 Credits Remaining / mo</div>
+              <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">1 credit = 1 found email</div>
+            </div>
+            <div class="score-item">
+              <div class="score-item-title">SignalHire Quota</div>
+              <div class="score-item-val" style="color:var(--accent-green);">5 Contact Credits Active</div>
+              <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Candidate profile lookup</div>
+            </div>
+            <div class="score-item">
+              <div class="score-item-title">FinalScout Credits</div>
+              <div class="score-item-val" style="color:var(--accent-yellow);">20 Regular + 10 AI Credits</div>
+              <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">LinkedIn & Domain search</div>
+            </div>
+            <div class="score-item">
               <div class="score-item-title">ZeroBounce Balance</div>
-              <div class="score-item-val" style="color:var(--accent-yellow);">100 Free Credits / Month</div>
+              <div class="score-item-val" style="color:var(--accent-lime);">100 Free Credits / Month</div>
               <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Live `/getcredits` endpoint</div>
             </div>
             <div class="score-item">
               <div class="score-item-title">DeBounce Balance</div>
-              <div class="score-item-val" style="color:var(--accent-lime);">100 Credits (No Expiration)</div>
+              <div class="score-item-val" style="color:var(--accent-green);">100 Credits (No Expiration)</div>
               <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Live `/balance` endpoint</div>
             </div>
             <div class="score-item">
               <div class="score-item-title">GitHub Search Rate Limit</div>
-              <div class="score-item-val" style="color:var(--accent-green);">30 req/min (Token Mode)</div>
+              <div class="score-item-val" style="color:var(--accent-yellow);">30 req/min (Token Mode)</div>
               <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Live `/rate_limit` endpoint</div>
             </div>
           </div>
