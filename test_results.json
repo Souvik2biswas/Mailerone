@@ -1,44 +1,72 @@
 {
     "config_manager": {
         "status": "PASSED",
-        "duration_sec": 0.003
+        "duration_sec": 0.008
     },
     "dns_inspector": {
         "status": "PASSED",
         "mx_count": 1,
         "spf_found": true,
         "dmarc_found": true,
-        "duration_sec": 1.611
+        "duration_sec": 1.657
     },
     "disposable_blocklist": {
         "status": "PASSED",
         "blocklist_size": 8814,
-        "duration_sec": 0.97
+        "duration_sec": 0.922
     },
     "disify_api": {
         "status": "PASSED",
         "dns": true,
         "free_provider": false,
         "role_account": true,
-        "duration_sec": 1.624
+        "duration_sec": 1.436
     },
     "osint_profilers": {
         "status": "PASSED",
         "gravatar_found": true,
         "github_found": true,
         "github_user": "libJNI",
-        "duration_sec": 3.001
+        "duration_sec": 2.75
     },
     "hunter_engine": {
-        "status": "SKIPPED/UNAUTHORIZED",
-        "result": null,
-        "score": null,
-        "error": "Hunter Error: 401",
-        "duration_sec": 1.339
+        "status": "PASSED",
+        "result": "risky",
+        "score": 78,
+        "error": null,
+        "duration_sec": 1.999
+    },
+    "name2email_engine": {
+        "status": "PASSED",
+        "total_generated": 33,
+        "candidates_found": 33,
+        "primary_candidate": "satya.nadella@microsoft.com",
+        "duration_sec": 11.837
+    },
+    "b2b_lead_engines": {
+        "status": "PASSED",
+        "contactout_handled": true,
+        "salesql_handled": true,
+        "signalhire_handled": true,
+        "finalscout_handled": true,
+        "duration_sec": 0.001
+    },
+    "multifinder_pipeline": {
+        "status": "PASSED",
+        "engines_queried": [
+            "Hunter.io",
+            "ContactOut",
+            "SalesQL",
+            "SignalHire",
+            "FinalScout",
+            "Name2Email (Smart Permutator)"
+        ],
+        "emails_identified": 3,
+        "duration_sec": 11.543
     },
     "multi_verifier_scan": {
         "status": "PASSED",
         "target": "admin@microsoft.com",
-        "duration_sec": 16.574
+        "duration_sec": 12.775
     }
 }

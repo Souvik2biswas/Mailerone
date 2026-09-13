@@ -3,6 +3,7 @@ import random
 import hashlib
 import requests
 import dns.resolver
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from config_manager import get_api_key
 
 HEADERS = {
@@ -365,3 +366,524 @@ class EmailRepEngine:
             return {"success": False, "error": f"EmailRep Error: {resp.status_code}"}
         except Exception as e:
             return {"success": False, "error": str(e)}
+
+# -------------------------------------------------------------
+# 11. ContactOut API Engine (B2B Email & Phone Finder)
+# -------------------------------------------------------------
+class ContactOutEngine:
+    @staticmethod
+    def find_email(domain, first_name, last_name, company=None, api_key=None):
+        if not api_key:
+            api_key = get_api_key("contactout_api_key")
+        if not api_key:
+            return {"success": False, "error": "No ContactOut API key configured"}
+        headers = HEADERS.copy()
+        headers["authorization"] = f"Bearer {api_key}"
+        headers["token"] = api_key
+        headers["Content-Type"] = "application/json"
+        try:
+            url = "https://api.contactout.com/v1/people/search"
+            payload = {
+                "first_name": first_name.strip(),
+                "last_name": last_name.strip(),
+                "domain": domain.strip().lower()
+            }
+            if company:
+                payload["company"] = company.strip()
+            resp = requests.post(url, headers=headers, json=payload, timeout=9)
+            if resp.status_code == 200:
+                data = resp.json()
+                profile = data.get("profile", {}) or (data.get("data", [{}])[0] if isinstance(data.get("data"), list) and data.get("data") else {})
+                work_emails = profile.get("work_emails", []) or profile.get("work_email", [])
+                personal_emails = profile.get("personal_emails", []) or profile.get("personal_email", [])
+                if isinstance(work_emails, str):
+                    work_emails = [work_emails]
+                if isinstance(personal_emails, str):
+                    personal_emails = [personal_emails]
+                phones = profile.get("phones", []) or profile.get("phone_numbers", [])
+                if isinstance(phones, str):
+                    phones = [phones]
+                return {
+                    "success": True,
+                    "engine": "ContactOut",
+                    "work_emails": work_emails,
+                    "personal_emails": personal_emails,
+                    "primary_email": work_emails[0] if work_emails else (personal_emails[0] if personal_emails else None),
+                    "phone_numbers": phones,
+                    "job_title": profile.get("job_title", profile.get("title", "")),
+                    "company": profile.get("company_name", company or domain),
+                    "linkedin_url": profile.get("linkedin_url", "")
+                }
+            return {"success": False, "error": f"ContactOut Error: {resp.status_code}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def find_by_linkedin(linkedin_url, api_key=None):
+        if not api_key:
+            api_key = get_api_key("contactout_api_key")
+        if not api_key:
+            return {"success": False, "error": "No ContactOut API key configured"}
+        headers = HEADERS.copy()
+        headers["authorization"] = f"Bearer {api_key}"
+        headers["token"] = api_key
+        try:
+            url = f"https://api.contactout.com/v1/email?url={linkedin_url}"
+            resp = requests.get(url, headers=headers, timeout=9)
+            if resp.status_code == 200:
+                data = resp.json()
+                profile = data.get("profile", {}) or data
+                work_emails = profile.get("work_emails", [])
+                personal_emails = profile.get("personal_emails", [])
+                if isinstance(work_emails, str):
+                    work_emails = [work_emails]
+                if isinstance(personal_emails, str):
+                    personal_emails = [personal_emails]
+                return {
+                    "success": True,
+                    "engine": "ContactOut",
+                    "work_emails": work_emails,
+                    "personal_emails": personal_emails,
+                    "primary_email": work_emails[0] if work_emails else (personal_emails[0] if personal_emails else None),
+                    "phone_numbers": profile.get("phones", []),
+                    "job_title": profile.get("title", ""),
+                    "company": profile.get("company", "")
+                }
+            return {"success": False, "error": f"ContactOut Error: {resp.status_code}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+# -------------------------------------------------------------
+# 12. SalesQL API Engine (B2B Lead Enrichment)
+# -------------------------------------------------------------
+class SalesQLEngine:
+    @staticmethod
+    def find_email(domain, first_name, last_name, api_key=None):
+        if not api_key:
+            api_key = get_api_key("salesql_api_key")
+        if not api_key:
+            return {"success": False, "error": "No SalesQL API key configured"}
+        headers = HEADERS.copy()
+        headers["Authorization"] = f"Bearer {api_key}"
+        headers["X-Api-Key"] = api_key
+        headers["Content-Type"] = "application/json"
+        try:
+            url = "https://api.salesql.com/v1/persons/enrich"
+            payload = {
+                "first_name": first_name.strip(),
+                "last_name": last_name.strip(),
+                "domain": domain.strip().lower()
+            }
+            resp = requests.post(url, headers=headers, json=payload, timeout=9)
+            if resp.status_code == 200:
+                data = resp.json()
+                person = data.get("person", {}) or data.get("data", {}) or data
+                raw_emails = person.get("emails", [])
+                emails_list = []
+                for em in raw_emails:
+                    if isinstance(em, dict):
+                        emails_list.append(em.get("email"))
+                    elif isinstance(em, str):
+                        emails_list.append(em)
+                return {
+                    "success": True,
+                    "engine": "SalesQL",
+                    "emails": emails_list,
+                    "primary_email": emails_list[0] if emails_list else person.get("email"),
+                    "phones": person.get("phones", []),
+                    "headline": person.get("headline", ""),
+                    "location": person.get("location", ""),
+                    "company": person.get("company_name", domain)
+                }
+            return {"success": False, "error": f"SalesQL Error: {resp.status_code}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def find_by_linkedin(linkedin_url, api_key=None):
+        if not api_key:
+            api_key = get_api_key("salesql_api_key")
+        if not api_key:
+            return {"success": False, "error": "No SalesQL API key configured"}
+        headers = HEADERS.copy()
+        headers["Authorization"] = f"Bearer {api_key}"
+        headers["X-Api-Key"] = api_key
+        headers["Content-Type"] = "application/json"
+        try:
+            url = "https://api.salesql.com/v1/persons/enrich"
+            payload = {"linkedin_url": linkedin_url.strip()}
+            resp = requests.post(url, headers=headers, json=payload, timeout=9)
+            if resp.status_code == 200:
+                data = resp.json()
+                person = data.get("person", {}) or data
+                raw_emails = person.get("emails", [])
+                emails_list = [em.get("email") if isinstance(em, dict) else em for em in raw_emails]
+                return {
+                    "success": True,
+                    "engine": "SalesQL",
+                    "emails": emails_list,
+                    "primary_email": emails_list[0] if emails_list else person.get("email"),
+                    "headline": person.get("headline", ""),
+                    "company": person.get("company_name", "")
+                }
+            return {"success": False, "error": f"SalesQL Error: {resp.status_code}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+# -------------------------------------------------------------
+# 13. SignalHire API Engine (Candidate & Prospect Email Finder)
+# -------------------------------------------------------------
+class SignalHireEngine:
+    @staticmethod
+    def find_email(domain, first_name, last_name, api_key=None):
+        if not api_key:
+            api_key = get_api_key("signalhire_api_key")
+        if not api_key:
+            return {"success": False, "error": "No SignalHire API key configured"}
+        headers = HEADERS.copy()
+        headers["apiKey"] = api_key
+        headers["Content-Type"] = "application/json"
+        try:
+            url = "https://www.signalhire.com/api/v1/candidate/search"
+            payload = {
+                "name": f"{first_name.strip()} {last_name.strip()}",
+                "company": domain.strip().lower(),
+                "items": ["email", "phone"]
+            }
+            resp = requests.post(url, headers=headers, json=payload, timeout=9)
+            if resp.status_code in [200, 201]:
+                data = resp.json()
+                candidate = data.get("candidate", {}) or (data.get("candidates", [{}])[0] if isinstance(data.get("candidates"), list) and data.get("candidates") else {})
+                raw_emails = candidate.get("emails", [])
+                emails_list = [e.get("value") if isinstance(e, dict) else e for e in raw_emails]
+                raw_phones = candidate.get("phones", [])
+                phones_list = [p.get("value") if isinstance(p, dict) else p for p in raw_phones]
+                return {
+                    "success": True,
+                    "engine": "SignalHire",
+                    "emails": emails_list,
+                    "primary_email": emails_list[0] if emails_list else None,
+                    "phones": phones_list,
+                    "social_profiles": candidate.get("socialProfiles", []),
+                    "status": data.get("status", "found")
+                }
+            return {"success": False, "error": f"SignalHire Error: {resp.status_code}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+# -------------------------------------------------------------
+# 14. FinalScout API Engine (LinkedIn & Corporate Email Finder)
+# -------------------------------------------------------------
+class FinalScoutEngine:
+    @staticmethod
+    def find_email(domain, first_name, last_name, api_key=None):
+        if not api_key:
+            api_key = get_api_key("finalscout_api_key")
+        if not api_key:
+            return {"success": False, "error": "No FinalScout API key configured"}
+        headers = HEADERS.copy()
+        headers["Authorization"] = f"Bearer {api_key}"
+        headers["X-API-KEY"] = api_key
+        headers["Content-Type"] = "application/json"
+        try:
+            url = "https://finalscout.com/api/v1/emails/find"
+            payload = {
+                "first_name": first_name.strip(),
+                "last_name": last_name.strip(),
+                "domain": domain.strip().lower()
+            }
+            resp = requests.post(url, headers=headers, json=payload, timeout=9)
+            if resp.status_code == 200:
+                data = resp.json()
+                return {
+                    "success": True,
+                    "engine": "FinalScout",
+                    "email": data.get("email"),
+                    "status": data.get("status", "deliverable"),
+                    "score": data.get("score", 100),
+                    "title": data.get("title", ""),
+                    "domain": domain
+                }
+            return {"success": False, "error": f"FinalScout Error: {resp.status_code}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def find_by_linkedin(linkedin_url, api_key=None):
+        if not api_key:
+            api_key = get_api_key("finalscout_api_key")
+        if not api_key:
+            return {"success": False, "error": "No FinalScout API key configured"}
+        headers = HEADERS.copy()
+        headers["Authorization"] = f"Bearer {api_key}"
+        headers["X-API-KEY"] = api_key
+        headers["Content-Type"] = "application/json"
+        try:
+            url = "https://finalscout.com/api/v1/linkedin/search"
+            payload = {"url": linkedin_url.strip()}
+            resp = requests.post(url, headers=headers, json=payload, timeout=9)
+            if resp.status_code == 200:
+                data = resp.json()
+                return {
+                    "success": True,
+                    "engine": "FinalScout",
+                    "email": data.get("email"),
+                    "status": data.get("status"),
+                    "score": data.get("score"),
+                    "name": data.get("name")
+                }
+            return {"success": False, "error": f"FinalScout Error: {resp.status_code}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+# -------------------------------------------------------------
+# 15. Name2Email (Name2Mail) Smart Permutator & Verification Engine
+# -------------------------------------------------------------
+class Name2EmailEngine:
+    @staticmethod
+    def generate_patterns(first_name, last_name, domain):
+        clean_first = re.sub(r'[^a-zA-Z0-9]', '', first_name).lower()
+        clean_last = re.sub(r'[^a-zA-Z0-9]', '', last_name).lower()
+        clean_domain = domain.strip().lower()
+
+        if not clean_first or not clean_last or not clean_domain:
+            return []
+
+        f = clean_first[0]
+        l = clean_last[0]
+
+        patterns = [
+            f"{clean_first}.{clean_last}",
+            f"{clean_first}{clean_last}",
+            f"{f}.{clean_last}",
+            f"{f}{clean_last}",
+            f"{clean_first}_{clean_last}",
+            f"{f}_{clean_last}",
+            f"{clean_first}-{clean_last}",
+            f"{f}-{clean_last}",
+            f"{clean_first}.{l}",
+            f"{clean_first}{l}",
+            f"{clean_first}_{l}",
+            f"{clean_first}-{l}",
+            f"{clean_first}",
+            f"{clean_last}",
+            f"{clean_last}.{clean_first}",
+            f"{clean_last}{clean_first}",
+            f"{clean_last}.{f}",
+            f"{clean_last}{f}",
+            f"{clean_last}_{clean_first}",
+            f"{clean_last}_{f}",
+            f"{clean_last}-{clean_first}",
+            f"{clean_last}-{f}",
+            f"{l}.{clean_first}",
+            f"{l}{clean_first}",
+            f"{l}_{clean_first}",
+            f"{l}-{clean_first}",
+            f"{f}.{l}",
+            f"{f}{l}",
+            f"{clean_first}.{clean_last}1",
+            f"{clean_first}.{clean_last}2",
+            f"{clean_first}{clean_last}1",
+            f"{clean_first}{clean_last}123",
+            f"{clean_first}{clean_last}777"
+        ]
+
+        seen = set()
+        unique_emails = []
+        for p in patterns:
+            em = f"{p}@{clean_domain}"
+            if em not in seen:
+                seen.add(em)
+                unique_emails.append(em)
+
+        return unique_emails
+
+    @classmethod
+    def find_and_verify(cls, first_name, last_name, domain, max_threads=6):
+        domain = domain.strip().lower()
+        dns_info = DNSInspectorEngine.check_domain_dns(domain)
+        is_burner = DisposableBlocklistEngine.is_disposable(domain)
+
+        if not dns_info["has_mx"]:
+            return {
+                "success": False,
+                "domain": domain,
+                "error": "Target domain does not have active MX mail servers.",
+                "has_mx": False,
+                "is_disposable": is_burner,
+                "valid_candidates": [],
+                "all_patterns": []
+            }
+
+        patterns = cls.generate_patterns(first_name, last_name, domain)
+        candidate_results = []
+        valid_candidates = []
+
+        def check_single(email):
+            res = DisifyEngine.verify(email)
+            is_valid = res.get("success") and res.get("dns") and not res.get("disposable")
+            return {
+                "email": email,
+                "dns_active": res.get("dns", False),
+                "format": res.get("format", False),
+                "is_free": res.get("free_provider", False),
+                "is_valid": is_valid
+            }
+
+        with ThreadPoolExecutor(max_workers=max_threads) as executor:
+            futures = {executor.submit(check_single, em): em for em in patterns}
+            for future in as_completed(futures):
+                try:
+                    r = future.result()
+                    candidate_results.append(r)
+                    if r["is_valid"]:
+                        valid_candidates.append(r["email"])
+                except Exception:
+                    pass
+
+        priority_prefixes = [
+            f"{first_name.lower()}.{last_name.lower()}@",
+            f"{first_name.lower()[0]}{last_name.lower()}@",
+            f"{first_name.lower()[0]}.{last_name.lower()}@",
+            f"{first_name.lower()}{last_name.lower()}@"
+        ]
+        
+        sorted_valid = []
+        for pref in priority_prefixes:
+            for v in valid_candidates:
+                if v.startswith(pref) and v not in sorted_valid:
+                    sorted_valid.append(v)
+        for v in valid_candidates:
+            if v not in sorted_valid:
+                sorted_valid.append(v)
+
+        return {
+            "success": True,
+            "engine": "Name2Email",
+            "domain": domain,
+            "has_mx": True,
+            "is_disposable": is_burner,
+            "mx_records": dns_info["mx_records"],
+            "total_generated": len(patterns),
+            "valid_candidates": sorted_valid,
+            "primary_candidate": sorted_valid[0] if sorted_valid else (patterns[0] if patterns else None),
+            "all_candidates": candidate_results
+        }
+
+# -------------------------------------------------------------
+# 16. MultiFinderEngine (Unified Multi-Engine Lead Finder Pipeline)
+# -------------------------------------------------------------
+class MultiFinderEngine:
+    @staticmethod
+    def search(domain, first_name, last_name, company=None, linkedin_url=None):
+        results = {
+            "query": {
+                "first_name": first_name,
+                "last_name": last_name,
+                "domain": domain,
+                "company": company,
+                "linkedin_url": linkedin_url
+            },
+            "engines_queried": [],
+            "found_emails": [],
+            "found_phones": [],
+            "social_profiles": [],
+            "details": {}
+        }
+
+        # 1. Hunter.io
+        h_res = HunterEngine.find_email(domain, first_name, last_name)
+        results["engines_queried"].append("Hunter.io")
+        results["details"]["hunter"] = h_res
+        if h_res.get("success") and h_res.get("email"):
+            results["found_emails"].append({
+                "email": h_res["email"],
+                "source": "Hunter.io",
+                "confidence": f"{h_res.get('score', 'N/A')}%"
+            })
+
+        # 2. ContactOut
+        if linkedin_url:
+            co_res = ContactOutEngine.find_by_linkedin(linkedin_url)
+        else:
+            co_res = ContactOutEngine.find_email(domain, first_name, last_name, company=company)
+        results["engines_queried"].append("ContactOut")
+        results["details"]["contactout"] = co_res
+        if co_res.get("success"):
+            for em in co_res.get("work_emails", []) + co_res.get("personal_emails", []):
+                if em and not any(x["email"] == em for x in results["found_emails"]):
+                    results["found_emails"].append({
+                        "email": em,
+                        "source": "ContactOut",
+                        "confidence": "High"
+                    })
+            for ph in co_res.get("phone_numbers", []):
+                if ph and ph not in results["found_phones"]:
+                    results["found_phones"].append(ph)
+
+        # 3. SalesQL
+        if linkedin_url:
+            sql_res = SalesQLEngine.find_by_linkedin(linkedin_url)
+        else:
+            sql_res = SalesQLEngine.find_email(domain, first_name, last_name)
+        results["engines_queried"].append("SalesQL")
+        results["details"]["salesql"] = sql_res
+        if sql_res.get("success"):
+            for em in sql_res.get("emails", []):
+                if em and not any(x["email"] == em for x in results["found_emails"]):
+                    results["found_emails"].append({
+                        "email": em,
+                        "source": "SalesQL",
+                        "confidence": "High"
+                    })
+            for ph in sql_res.get("phones", []):
+                if ph and ph not in results["found_phones"]:
+                    results["found_phones"].append(ph)
+
+        # 4. SignalHire
+        sh_res = SignalHireEngine.find_email(domain, first_name, last_name)
+        results["engines_queried"].append("SignalHire")
+        results["details"]["signalhire"] = sh_res
+        if sh_res.get("success"):
+            for em in sh_res.get("emails", []):
+                if em and not any(x["email"] == em for x in results["found_emails"]):
+                    results["found_emails"].append({
+                        "email": em,
+                        "source": "SignalHire",
+                        "confidence": "High"
+                    })
+            for ph in sh_res.get("phones", []):
+                if ph and ph not in results["found_phones"]:
+                    results["found_phones"].append(ph)
+
+        # 5. FinalScout
+        if linkedin_url:
+            fs_res = FinalScoutEngine.find_by_linkedin(linkedin_url)
+        else:
+            fs_res = FinalScoutEngine.find_email(domain, first_name, last_name)
+        results["engines_queried"].append("FinalScout")
+        results["details"]["finalscout"] = fs_res
+        if fs_res.get("success") and fs_res.get("email"):
+            em = fs_res["email"]
+            if not any(x["email"] == em for x in results["found_emails"]):
+                results["found_emails"].append({
+                    "email": em,
+                    "source": "FinalScout",
+                    "confidence": f"{fs_res.get('score', 100)}%"
+                })
+
+        # 6. Name2Email Smart Permutation Generator & Validator
+        n2e_res = Name2EmailEngine.find_and_verify(first_name, last_name, domain)
+        results["engines_queried"].append("Name2Email (Smart Permutator)")
+        results["details"]["name2email"] = n2e_res
+        if n2e_res.get("success") and n2e_res.get("valid_candidates"):
+            for em in n2e_res["valid_candidates"][:3]:
+                if not any(x["email"] == em for x in results["found_emails"]):
+                    results["found_emails"].append({
+                        "email": em,
+                        "source": "Name2Email (Verified Candidate)",
+                        "confidence": "Medium (Pattern Verified)"
+                    })
+
+        return results
+

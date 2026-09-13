@@ -9,6 +9,10 @@
     "debounce_api_key": "6aa55a2bdae7c",
     "mailboxlayer_api_key": "e1f6bdb5b6c0f910fc4e793631001490",
     "emailrep_api_key": "",
+    "contactout_api_key": "",
+    "salesql_api_key": "",
+    "signalhire_api_key": "",
+    "finalscout_api_key": "",
     "github_token": "",
     "test_service_key": "sample_test_value_123"
 }

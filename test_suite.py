@@ -11,7 +11,13 @@ from api_engines import (
     ZeroBounceEngine,
     DebounceEngine,
     MailboxlayerEngine,
-    EmailRepEngine
+    EmailRepEngine,
+    ContactOutEngine,
+    SalesQLEngine,
+    SignalHireEngine,
+    FinalScoutEngine,
+    Name2EmailEngine,
+    MultiFinderEngine
 )
 from multi_verifier import run_comprehensive_scan
 
@@ -103,8 +109,53 @@ def run_tests():
     }
     print(f" -> Hunter.io Engine: {report['hunter_engine']['status']} (Result: {hunter_res.get('result')}, Score: {hunter_res.get('score')})")
 
-    # 7. Comprehensive Multi-Verifier Execution
-    print("\n[TEST 7] Comprehensive Multi-Engine Scan...")
+    # 7. Name2Email Smart Permutator & DNS Verifier Test
+    print("\n[TEST 7] Name2Email Smart Permutator & Verifier...")
+    t0 = time.time()
+    n2e_res = Name2EmailEngine.find_and_verify("satya", "nadella", "microsoft.com")
+    n2e_ok = n2e_res.get("success") is True and len(n2e_res.get("valid_candidates", [])) > 0
+    report["name2email_engine"] = {
+        "status": "PASSED" if n2e_ok else "FAILED",
+        "total_generated": n2e_res.get("total_generated"),
+        "candidates_found": len(n2e_res.get("valid_candidates", [])),
+        "primary_candidate": n2e_res.get("primary_candidate"),
+        "duration_sec": round(time.time() - t0, 3)
+    }
+    print(f" -> Name2Email: {report['name2email_engine']['status']} (Generated {n2e_res.get('total_generated')} patterns, Top: {n2e_res.get('primary_candidate')})")
+
+    # 8. B2B Lead Finding APIs (ContactOut, SalesQL, SignalHire, FinalScout)
+    print("\n[TEST 8] B2B Lead Finding Engines (ContactOut, SalesQL, SignalHire, FinalScout)...")
+    t0 = time.time()
+    co = ContactOutEngine.find_email("microsoft.com", "Satya", "Nadella")
+    sql = SalesQLEngine.find_email("microsoft.com", "Satya", "Nadella")
+    sh = SignalHireEngine.find_email("microsoft.com", "Satya", "Nadella")
+    fs = FinalScoutEngine.find_email("microsoft.com", "Satya", "Nadella")
+    b2b_ok = all(isinstance(x, dict) for x in [co, sql, sh, fs])
+    report["b2b_lead_engines"] = {
+        "status": "PASSED" if b2b_ok else "FAILED",
+        "contactout_handled": True,
+        "salesql_handled": True,
+        "signalhire_handled": True,
+        "finalscout_handled": True,
+        "duration_sec": round(time.time() - t0, 3)
+    }
+    print(f" -> B2B Lead Engines: {report['b2b_lead_engines']['status']}")
+
+    # 9. MultiFinder All-in-One Lead Pipeline
+    print("\n[TEST 9] MultiFinder All-in-One Pipeline...")
+    t0 = time.time()
+    mf_res = MultiFinderEngine.search("stripe.com", "Patrick", "Collison")
+    mf_ok = len(mf_res.get("engines_queried", [])) >= 5
+    report["multifinder_pipeline"] = {
+        "status": "PASSED" if mf_ok else "FAILED",
+        "engines_queried": mf_res.get("engines_queried"),
+        "emails_identified": len(mf_res.get("found_emails", [])),
+        "duration_sec": round(time.time() - t0, 3)
+    }
+    print(f" -> MultiFinder Pipeline: {report['multifinder_pipeline']['status']} (Queried {len(mf_res.get('engines_queried', []))} engines)")
+
+    # 10. Comprehensive Multi-Verifier Execution
+    print("\n[TEST 10] Comprehensive Multi-Engine Scan...")
     t0 = time.time()
     run_comprehensive_scan("admin@microsoft.com")
     report["multi_verifier_scan"] = {

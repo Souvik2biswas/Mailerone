@@ -15,7 +15,13 @@ from api_engines import (
     ZeroBounceEngine,
     DebounceEngine,
     MailboxlayerEngine,
-    EmailRepEngine
+    EmailRepEngine,
+    ContactOutEngine,
+    SalesQLEngine,
+    SignalHireEngine,
+    FinalScoutEngine,
+    Name2EmailEngine,
+    MultiFinderEngine
 )
 from multi_verifier import run_comprehensive_scan
 
@@ -145,51 +151,230 @@ def comprehensive_scan_menu():
     pause()
 
 # -------------------------------------------------------------
-# 4. Hunter.io Suite (Verifier + Name/Domain Finder)
+# 4. B2B Email Finders & Lead Enrichment Suite
 # -------------------------------------------------------------
-def hunter_menu():
-    cls()
-    banner()
-    print(f"{space}{b}[{w}1{b}]{w} Hunter.io Email Verifier")
-    print(f"{space}{b}[{w}2{b}]{w} Hunter.io Email Finder (First Name + Last Name + Domain)")
-    print(f"{space}{b}[{w}0{b}]{w} Back to Main Menu\n")
-    choice = input(f"{space}{b}[{w}?{b}]{w} Select option: {b}").strip()
-
-    if choice == "1":
+def b2b_finders_menu():
+    while True:
         cls()
         banner()
-        email = input(f"{space}{b}[{w}?{b}]{w} Enter email to verify: {b}").strip()
-        res = HunterEngine.verify(email)
-        print(w + lines)
-        if res.get("success"):
-            print(f"{space}{g}[+]{w} Target Email : {email}")
-            print(f"{space}{g}[+]{w} Status       : {res.get('status')}")
-            print(f"{space}{g}[+]{w} Result       : {res.get('result')}")
-            print(f"{space}{g}[+]{w} Score        : {res.get('score')}")
-            print(f"{space}{g}[+]{w} Regexp Valid : {res.get('regexp')}")
-            print(f"{space}{g}[+]{w} Disposable   : {res.get('disposable')}")
-            print(f"{space}{g}[+]{w} SMTP Server  : {res.get('smtp_server')}")
-            print(f"{space}{g}[+]{w} SMTP Check   : {res.get('smtp_check')}")
-            print(f"{space}{g}[+]{w} Block Status : {res.get('block')}")
-        else:
-            print(f"{space}{r}[!]{w} {res.get('error')}")
-            print(f"{space}{y}[*]{w} Configure your API key in Option [9] (API Key Manager)")
-        pause()
-    elif choice == "2":
-        cls()
-        banner()
-        first = input(f"{space}{b}[{w}?{b}]{w} First Name: {b}").strip()
-        last = input(f"{space}{b}[{w}?{b}]{w} Last Name: {b}").strip()
-        domain = input(f"{space}{b}[{w}?{b}]{w} Company / Email Domain (e.g. google.com): {b}").strip()
-        res = HunterEngine.find_email(domain, first, last)
-        print(w + lines)
-        if res.get("success") and res.get("email"):
-            print(f"{space}{g}[+]{w} Found Email   : {G} {res['email']} {w}")
-            print(f"{space}{g}[+]{w} Confidence    : {res.get('score')}%")
-            print(f"{space}{g}[+]{w} Public Sources: {res.get('sources')}")
-        else:
-            print(f"{space}{r}[!]{w} {res.get('error', 'No email found for given details.')}")
-        pause()
+        print(f"{space}{p}=== B2B Email Finders & Lead Enrichment Suite ==={w}\n")
+        print(f"{space}{b}[{w}1{b}]{w} {G} All-in-One Multi-Finder Pipeline {w} (Hunter + ContactOut + SalesQL + SignalHire + FinalScout + Name2Email)")
+        print(f"{space}{b}[{w}2{b}]{w} Name2Email / Name2Mail (34 Patterns + Parallel DNS/Disify Verifier)")
+        print(f"{space}{b}[{w}3{b}]{w} ContactOut B2B Email & Phone Finder (Name + Company / LinkedIn)")
+        print(f"{space}{b}[{w}4{b}]{w} SalesQL Lead Enrichment Finder (Name + Domain / LinkedIn)")
+        print(f"{space}{b}[{w}5{b}]{w} SignalHire Candidate Search (Name + Company)")
+        print(f"{space}{b}[{w}6{b}]{w} FinalScout Corporate Email Finder (Name + Domain / LinkedIn)")
+        print(f"{space}{b}[{w}7{b}]{w} Hunter.io Suite (Email Verifier & Name+Domain Finder)")
+        print(f"\n{space}{b}[{w}0{b}]{w} Back to Main Menu\n")
+        
+        choice = input(f"{space}{b}[{w}?{b}]{w} Select option [0-7]: {b}").strip()
+        
+        if choice == "0" or not choice:
+            break
+            
+        # 1. Multi-Finder Pipeline
+        elif choice in ["1", "01"]:
+            cls()
+            banner()
+            print(f"{space}{p}--- All-in-One Multi-Finder Lead Pipeline ---{w}\n")
+            first = input(f"{space}{b}[{w}?{b}]{w} First Name: {b}").strip()
+            last = input(f"{space}{b}[{w}?{b}]{w} Last Name: {b}").strip()
+            domain = input(f"{space}{b}[{w}?{b}]{w} Target Domain (e.g. stripe.com): {b}").strip().lower()
+            company = input(f"{space}{b}[{w}?{b}]{w} Company Name (optional, press Enter to skip): {b}").strip()
+            linkedin_url = input(f"{space}{b}[{w}?{b}]{w} LinkedIn URL (optional, press Enter to skip): {b}").strip()
+            
+            if not first or not last or not domain:
+                continue
+                
+            print(w + lines)
+            print(f"{space}{b}[*]{w} Executing Multi-Finder Lead Search for: {y}{first} {last}{w} @ {y}{domain}{w}...\n")
+            res = MultiFinderEngine.search(domain, first, last, company=company, linkedin_url=linkedin_url)
+            
+            print(f"{space}{G} SEARCH RESULTS SUMMARY {w}\n")
+            print(f"{space}{b}[*]{w} Engines Queried: {', '.join(res['engines_queried'])}")
+            
+            if res["found_emails"]:
+                print(f"\n{space}{g}[+]{w} Identified Email Addresses ({len(res['found_emails'])}):")
+                for em_info in res["found_emails"]:
+                    print(f"{space}    - {G} {em_info['email']} {w} [{y}{em_info['source']}{w}] (Confidence: {g}{em_info['confidence']}{w})")
+            else:
+                print(f"\n{space}{r}[-]{w} No verified emails returned by queried engines.")
+                
+            if res["found_phones"]:
+                print(f"\n{space}{g}[+]{w} Identified Phone Numbers:")
+                for ph in res["found_phones"]:
+                    print(f"{space}    - {ph}")
+                    
+            pause()
+            
+        # 2. Name2Email Smart Permutator & Verifier
+        elif choice in ["2", "02"]:
+            cls()
+            banner()
+            print(f"{space}{p}--- Name2Email / Name2Mail Smart Permutation & Verification Engine ---{w}\n")
+            first = input(f"{space}{b}[{w}?{b}]{w} First Name: {b}").strip()
+            last = input(f"{space}{b}[{w}?{b}]{w} Last Name: {b}").strip()
+            domain = input(f"{space}{b}[{w}?{b}]{w} Target Domain (e.g. google.com): {b}").strip().lower()
+            
+            if not first or not last or not domain:
+                continue
+                
+            print(w + lines)
+            print(f"{space}{b}[*]{w} Generating 34 email permutations & verifying MX/DNS in parallel...")
+            res = Name2EmailEngine.find_and_verify(first, last, domain)
+            
+            if not res.get("has_mx"):
+                print(f"{space}{r}[!]{w} {res.get('error', 'Domain has no active mail servers.')}")
+            else:
+                print(f"{space}{g}[+]{w} Active MX Records: {', '.join(res.get('mx_records', [])[:2])}")
+                print(f"{space}{g}[+]{w} Total Permutations Generated: {res.get('total_generated')}")
+                if res.get("primary_candidate"):
+                    print(f"\n{space}{B} TOP CANDIDATE {w} {G} {res['primary_candidate']} {w}")
+                
+                print(f"\n{space}{g}[+]{w} Ranked Candidate Permutations:")
+                for em in res.get("valid_candidates", [])[:8]:
+                    print(f"{space}    - {g}{em}{w}")
+                    
+                # Save to result file
+                with open("name2mail_candidates.txt", "w", encoding="utf-8") as f:
+                    for em in res.get("valid_candidates", []):
+                        f.write(em + "\n")
+                print(f"\n{space}{g}[+]{w} Saved all {len(res.get('valid_candidates', []))} candidate(s) to: {y}name2mail_candidates.txt{w}")
+            pause()
+            
+        # 3. ContactOut
+        elif choice in ["3", "03"]:
+            cls()
+            banner()
+            print(f"{space}{p}--- ContactOut B2B Email & Phone Finder ---{w}\n")
+            sub = input(f"{space}{b}[{w}?{b}]{w} Search by (1) Name + Domain or (2) LinkedIn URL? [1/2]: {b}").strip()
+            print(w + lines)
+            if sub == "2":
+                li_url = input(f"{space}{b}[{w}?{b}]{w} Enter LinkedIn Profile URL: {b}").strip()
+                res = ContactOutEngine.find_by_linkedin(li_url)
+            else:
+                first = input(f"{space}{b}[{w}?{b}]{w} First Name: {b}").strip()
+                last = input(f"{space}{b}[{w}?{b}]{w} Last Name: {b}").strip()
+                domain = input(f"{space}{b}[{w}?{b}]{w} Target Domain: {b}").strip()
+                company = input(f"{space}{b}[{w}?{b}]{w} Company Name (optional): {b}").strip()
+                res = ContactOutEngine.find_email(domain, first, last, company=company)
+                
+            if res.get("success"):
+                print(f"{space}{g}[+]{w} Primary Email  : {G} {res.get('primary_email', 'N/A')} {w}")
+                print(f"{space}{g}[+]{w} Work Emails    : {', '.join(res.get('work_emails', [])) or 'None'}")
+                print(f"{space}{g}[+]{w} Personal Emails: {', '.join(res.get('personal_emails', [])) or 'None'}")
+                print(f"{space}{g}[+]{w} Phone Numbers  : {', '.join(res.get('phone_numbers', [])) or 'None'}")
+                print(f"{space}{g}[+]{w} Job Title      : {res.get('job_title', 'N/A')}")
+                print(f"{space}{g}[+]{w} Company        : {res.get('company', 'N/A')}")
+            else:
+                print(f"{space}{r}[!]{w} {res.get('error')}")
+                print(f"{space}{y}[*]{w} Configure your ContactOut API key in Option [9]")
+            pause()
+            
+        # 4. SalesQL
+        elif choice in ["4", "04"]:
+            cls()
+            banner()
+            print(f"{space}{p}--- SalesQL Lead Enrichment Finder ---{w}\n")
+            sub = input(f"{space}{b}[{w}?{b}]{w} Search by (1) Name + Domain or (2) LinkedIn URL? [1/2]: {b}").strip()
+            print(w + lines)
+            if sub == "2":
+                li_url = input(f"{space}{b}[{w}?{b}]{w} Enter LinkedIn Profile URL: {b}").strip()
+                res = SalesQLEngine.find_by_linkedin(li_url)
+            else:
+                first = input(f"{space}{b}[{w}?{b}]{w} First Name: {b}").strip()
+                last = input(f"{space}{b}[{w}?{b}]{w} Last Name: {b}").strip()
+                domain = input(f"{space}{b}[{w}?{b}]{w} Target Domain: {b}").strip()
+                res = SalesQLEngine.find_email(domain, first, last)
+                
+            if res.get("success"):
+                print(f"{space}{g}[+]{w} Primary Email : {G} {res.get('primary_email', 'N/A')} {w}")
+                print(f"{space}{g}[+]{w} All Emails    : {', '.join(res.get('emails', [])) or 'None'}")
+                print(f"{space}{g}[+]{w} Phone Numbers : {', '.join(res.get('phones', [])) or 'None'}")
+                print(f"{space}{g}[+]{w} Headline/Title: {res.get('headline', 'N/A')}")
+                print(f"{space}{g}[+]{w} Company       : {res.get('company', 'N/A')}")
+            else:
+                print(f"{space}{r}[!]{w} {res.get('error')}")
+                print(f"{space}{y}[*]{w} Configure your SalesQL API key in Option [9]")
+            pause()
+            
+        # 5. SignalHire
+        elif choice in ["5", "05"]:
+            cls()
+            banner()
+            print(f"{space}{p}--- SignalHire Candidate Search ---{w}\n")
+            first = input(f"{space}{b}[{w}?{b}]{w} First Name: {b}").strip()
+            last = input(f"{space}{b}[{w}?{b}]{w} Last Name: {b}").strip()
+            domain = input(f"{space}{b}[{w}?{b}]{w} Company Name / Domain: {b}").strip()
+            print(w + lines)
+            res = SignalHireEngine.find_email(domain, first, last)
+            if res.get("success"):
+                print(f"{space}{g}[+]{w} Primary Email : {G} {res.get('primary_email', 'N/A')} {w}")
+                print(f"{space}{g}[+]{w} All Emails    : {', '.join(res.get('emails', [])) or 'None'}")
+                print(f"{space}{g}[+]{w} Phone Numbers : {', '.join(res.get('phones', [])) or 'None'}")
+                print(f"{space}{g}[+]{w} Status        : {res.get('status', 'N/A')}")
+            else:
+                print(f"{space}{r}[!]{w} {res.get('error')}")
+                print(f"{space}{y}[*]{w} Configure your SignalHire API key in Option [9]")
+            pause()
+            
+        # 6. FinalScout
+        elif choice in ["6", "06"]:
+            cls()
+            banner()
+            print(f"{space}{p}--- FinalScout Corporate Email Finder ---{w}\n")
+            sub = input(f"{space}{b}[{w}?{b}]{w} Search by (1) Name + Domain or (2) LinkedIn URL? [1/2]: {b}").strip()
+            print(w + lines)
+            if sub == "2":
+                li_url = input(f"{space}{b}[{w}?{b}]{w} Enter LinkedIn Profile URL: {b}").strip()
+                res = FinalScoutEngine.find_by_linkedin(li_url)
+            else:
+                first = input(f"{space}{b}[{w}?{b}]{w} First Name: {b}").strip()
+                last = input(f"{space}{b}[{w}?{b}]{w} Last Name: {b}").strip()
+                domain = input(f"{space}{b}[{w}?{b}]{w} Target Domain: {b}").strip()
+                res = FinalScoutEngine.find_email(domain, first, last)
+                
+            if res.get("success") and res.get("email"):
+                print(f"{space}{g}[+]{w} Found Email   : {G} {res.get('email')} {w}")
+                print(f"{space}{g}[+]{w} Status        : {res.get('status', 'deliverable')}")
+                print(f"{space}{g}[+]{w} Confidence    : {res.get('score', 100)}%")
+                print(f"{space}{g}[+]{w} Title         : {res.get('title', 'N/A')}")
+            else:
+                print(f"{space}{r}[!]{w} {res.get('error', 'No email found.')}")
+                print(f"{space}{y}[*]{w} Configure your FinalScout API key in Option [9]")
+            pause()
+            
+        # 7. Hunter.io Suite
+        elif choice in ["7", "07"]:
+            cls()
+            banner()
+            print(f"{space}{p}--- Hunter.io Suite ---{w}\n")
+            print(f"{space}{b}[{w}1{b}]{w} Hunter.io Email Verifier")
+            print(f"{space}{b}[{w}2{b}]{w} Hunter.io Email Finder (First Name + Last Name + Domain)")
+            h_sub = input(f"\n{space}{b}[{w}?{b}]{w} Select option [1-2]: {b}").strip()
+            print(w + lines)
+            if h_sub == "1":
+                email = input(f"{space}{b}[{w}?{b}]{w} Enter email to verify: {b}").strip()
+                res = HunterEngine.verify(email)
+                if res.get("success"):
+                    print(f"{space}{g}[+]{w} Status       : {res.get('status')}")
+                    print(f"{space}{g}[+]{w} Result       : {res.get('result')}")
+                    print(f"{space}{g}[+]{w} Score        : {res.get('score')}")
+                    print(f"{space}{g}[+]{w} Disposable   : {res.get('disposable')}")
+                    print(f"{space}{g}[+]{w} SMTP Check   : {res.get('smtp_check')}")
+                else:
+                    print(f"{space}{r}[!]{w} {res.get('error')}")
+            elif h_sub == "2":
+                first = input(f"{space}{b}[{w}?{b}]{w} First Name: {b}").strip()
+                last = input(f"{space}{b}[{w}?{b}]{w} Last Name: {b}").strip()
+                domain = input(f"{space}{b}[{w}?{b}]{w} Target Domain: {b}").strip()
+                res = HunterEngine.find_email(domain, first, last)
+                if res.get("success") and res.get("email"):
+                    print(f"{space}{g}[+]{w} Found Email   : {G} {res['email']} {w}")
+                    print(f"{space}{g}[+]{w} Confidence    : {res.get('score')}%")
+                else:
+                    print(f"{space}{r}[!]{w} {res.get('error', 'No email found.')}")
+            pause()
 
 # -------------------------------------------------------------
 # 5. AbstractAPI Email Verifier
@@ -364,11 +549,16 @@ def config_keys_menu():
         
         services = [
             ("Hunter.io Keys", "hunter_api_keys", "List of keys (built-in fallback available)"),
+            ("ContactOut Key", "contactout_api_key", "https://contactout.com"),
+            ("SalesQL Key", "salesql_api_key", "https://salesql.com"),
+            ("SignalHire Key", "signalhire_api_key", "https://signalhire.com"),
+            ("FinalScout Key", "finalscout_api_key", "https://finalscout.com"),
             ("AbstractAPI Key", "abstract_api_key", "https://abstractapi.com"),
             ("ZeroBounce Key", "zerobounce_api_key", "https://zerobounce.net"),
             ("Debounce Key", "debounce_api_key", "https://debounce.io"),
             ("Mailboxlayer Key", "mailboxlayer_api_key", "https://mailboxlayer.com"),
-            ("EmailRep Key", "emailrep_api_key", "https://emailrep.io")
+            ("EmailRep Key", "emailrep_api_key", "https://emailrep.io"),
+            ("GitHub Token", "github_token", "Personal Access Token (optional)")
         ]
 
         for i, (name, key_field, info) in enumerate(services, 1):
@@ -406,13 +596,13 @@ def main_menu():
         print(f"{space}{b}[{w}1{b}]{w} Domain Inspector (DNS, MX, SPF, DMARC & Burner Check)")
         print(f"{space}{b}[{w}2{b}]{w} Check Username across 70+ Email Domains")
         print(f"{space} {w}|")
-        print(f"{space}{b}[{w}3{b}]{w} {G} Comprehensive Multi-Engine Email Scan {w} (All-in-One)")
+        print(f"{space}{b}[{w}3{b}]{w} {G} Comprehensive Multi-Engine Email Scan {w} (All-in-One Deliverability)")
+        print(f"{space}{b}[{w}4{b}]{w} {B} B2B Email Finders & Lead Enrichment Suite {w} (ContactOut, SalesQL, SignalHire, FinalScout, Name2Mail, Hunter)")
         print(f"{space} {w}|")
-        print(f"{space}{b}[{w}4{b}]{w} Hunter.io Suite (Email Verifier & Name+Domain Finder)")
         print(f"{space}{b}[{w}5{b}]{w} AbstractAPI Email Verifier")
-        print(f"{space}{b}[{w}6{b}]{w} ZeroBounce / Debounce / Mailboxlayer Verifiers")
+        print(f"{space}{b}[{w}6{b}]{w} Commercial Verifiers (ZeroBounce / Debounce / Mailboxlayer)")
         print(f"{space}{b}[{w}7{b}]{w} OSINT & Identity Profiler (Gravatar + GitHub + EmailRep)")
-        print(f"{space}{b}[{w}8{b}]{w} Search Email via Full Name (Permutation Generator)")
+        print(f"{space}{b}[{w}8{b}]{w} Name-to-Email Permutation Generator (Save to result.txt)")
         print(f"{space} {w}|")
         print(f"{space}{b}[{w}9{b}]{w} API Keys Configuration Manager")
         print(f"{space}{b}[{w}0{b}]{w} Exit Mailerone\n")
@@ -426,7 +616,7 @@ def main_menu():
         elif choice in ["3", "03"]:
             comprehensive_scan_menu()
         elif choice in ["4", "04"]:
-            hunter_menu()
+            b2b_finders_menu()
         elif choice in ["5", "05"]:
             abstract_menu()
         elif choice in ["6", "06"]:

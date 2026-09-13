@@ -14,6 +14,10 @@ DEFAULT_CONFIG = {
     "debounce_api_key": "",
     "mailboxlayer_api_key": "",
     "emailrep_api_key": "",
+    "contactout_api_key": "",
+    "salesql_api_key": "",
+    "signalhire_api_key": "",
+    "finalscout_api_key": "",
     "github_token": ""
 }
 
