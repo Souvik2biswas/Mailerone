@@ -109,6 +109,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }));
   }
 
+  function formatHighlightedEmail(pattern, domain) {
+    // Syntax highlight delimiters ., _, - and numbers in the username part
+    const formattedUser = pattern.replace(/([._-])/g, '<span class="email-sep">$1</span>');
+    return `<div class="pattern-email-box"><span class="email-user-part">${formattedUser}</span><span class="email-at">@</span><span class="email-domain-part">${domain}</span></div>`;
+  }
+
+  function formatHighlightedFormula(formula) {
+    const rawPattern = formula.replace('@{domain}', '');
+    const formatted = rawPattern.replace(/([._-])/g, '<span class="formula-sep">$1</span>');
+    return `<span class="formula-prefix">RULE</span> <code>${formatted}</code>`;
+  }
+
   function renderTokens(first, last, domain, totalCount, matchesCount) {
     if (!tokensBar) return;
     tokensBar.innerHTML = `
@@ -168,19 +180,19 @@ document.addEventListener('DOMContentLoaded', () => {
         card.className = `pattern-card ${isTop ? 'top-choice' : ''}`;
         card.innerHTML = `
           <div class="pattern-card-header">
-            <span class="pattern-email-text">${item.email}</span>
+            ${formatHighlightedEmail(item.pattern, domain)}
             <button class="btn-card-action copy-single-btn" data-email="${item.email}" title="Copy email">
               📋 Copy
             </button>
           </div>
           <div class="pattern-meta-row">
-            <span class="pattern-formula-tag">${item.formula}</span>
+            <div class="pattern-formula-tag">${formatHighlightedFormula(item.formula)}</div>
             <span class="pattern-prob-badge ${item.badge}">
-              ★ ${item.prob}% Match
+              <span class="prob-dot"></span> ${item.prob}% Match
             </span>
           </div>
           <div class="pattern-actions-row">
-            <span style="font-size:0.75rem; color:var(--text-muted); margin-right:auto;">${item.desc}</span>
+            <span class="pattern-desc-tag">${item.desc}</span>
             <button class="btn-card-action btn-card-verify verify-single-btn" data-email="${item.email}">
               ⚡ Scan Deliverability
             </button>
