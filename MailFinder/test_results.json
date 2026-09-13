@@ -1,0 +1,44 @@
+{
+    "config_manager": {
+        "status": "PASSED",
+        "duration_sec": 0.009
+    },
+    "dns_inspector": {
+        "status": "PASSED",
+        "mx_count": 1,
+        "spf_found": true,
+        "dmarc_found": true,
+        "duration_sec": 1.776
+    },
+    "disposable_blocklist": {
+        "status": "PASSED",
+        "blocklist_size": 8772,
+        "duration_sec": 0.955
+    },
+    "disify_api": {
+        "status": "PASSED",
+        "dns": true,
+        "free_provider": false,
+        "role_account": true,
+        "duration_sec": 1.642
+    },
+    "osint_profilers": {
+        "status": "PASSED",
+        "gravatar_found": true,
+        "github_found": true,
+        "github_user": "libJNI",
+        "duration_sec": 11.234
+    },
+    "hunter_engine": {
+        "status": "PASSED",
+        "result": "risky",
+        "score": 78,
+        "error": null,
+        "duration_sec": 2.209
+    },
+    "multi_verifier_scan": {
+        "status": "PASSED",
+        "target": "admin@microsoft.com",
+        "duration_sec": 12.199
+    }
+}

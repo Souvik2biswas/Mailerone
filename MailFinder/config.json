@@ -1,0 +1,14 @@
+{
+    "hunter_api_keys": [
+        "5d5015259730682de8b542355525b16ab7026c976a72993d",
+        "83e338e3a43cdcc649a1ea49957d2c0223b601bb",
+        "36a4ce62890b18e216951bb2cf4b9748129418f8"
+    ],
+    "abstract_api_key": "2a92469ed3bc4cc784f760a773476654",
+    "zerobounce_api_key": "68ef62ba39bb421389b6452250a1c8a6",
+    "debounce_api_key": "6aa55a2bdae7c",
+    "mailboxlayer_api_key": "e1f6bdb5b6c0f910fc4e793631001490",
+    "emailrep_api_key": "",
+    "github_token": "",
+    "test_service_key": "sample_test_value_123"
+}
