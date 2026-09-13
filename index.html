@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mailerone — Comprehensive Email Finding, Deliverability Verification & OSINT Suite</title>
+  <meta name="description" content="Mailerone is an advanced, all-in-one email intelligence, lead generation, and OSINT toolkit combining DNS protocol checks, B2B email finders, and multi-API deliverability verification.">
+  <meta name="keywords" content="email finder, OSINT, email verification, B2B leads, ContactOut, SalesQL, SignalHire, FinalScout, Name2Email, deliverability, Hunter.io, ZeroBounce">
+  <meta name="author" content="Souvik Biswas">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Mailerone — Advanced Email Finding & OSINT Suite">
+  <meta property="og:description" content="All-in-one email finding, multi-engine deliverability verification, and OSINT intelligence suite.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://github.com/Souvik2biswas/Mailerone">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="#" class="brand-logo" id="brand-logo">
+        <div class="logo-badge">📧</div>
+        <span>Mailer<span class="gradient-text">one</span></span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#playground" class="nav-link">Live Playground</a></li>
+        <li><a href="#features" class="nav-link">Engines & Features</a></li>
+        <li><a href="#quotas" class="nav-link">API Limits Matrix</a></li>
+        <li><a href="#install" class="nav-link">Installation</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <div class="badge-version">
+          <div class="status-dot"></div>
+          <span>v2.1 Online</span>
+        </div>
+        <a href="https://github.com/Souvik2biswas/Mailerone" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" id="btn-github-nav">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container hero-content">
+      <div class="badge-version" style="margin-bottom: 16px;">
+        <span>Multi-API Deliverability • B2B Lead Finders • OSINT Suite</span>
+      </div>
+
+      <h1 class="hero-title">
+        The Ultimate <span class="gradient-text">Email Intelligence</span> & Verification Toolkit
+      </h1>
+
+      <p class="hero-subtitle">
+        Seamlessly combine DNS security inspection, SMTP handshakes, 8,800+ burner domain blocklists, and elite B2B finders into a unified, high-performance dashboard.
+      </p>
+
+      <div class="hero-cta-group">
+        <a href="#playground" class="btn btn-primary" id="btn-hero-playground">
+          <span>🚀 Explore Interactive Playground</span>
+        </a>
+        <button class="btn btn-secondary" data-copy="git clone https://github.com/Souvik2biswas/Mailerone.git" id="btn-hero-copy">
+          <span>📋 Copy Git Clone</span>
+        </button>
+      </div>
+
+      <!-- Terminal Hero Window -->
+      <div class="terminal-window">
+        <div class="terminal-header">
+          <div class="terminal-dots">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-green"></span>
+          </div>
+          <div class="terminal-title">mailerone@terminal ~ interactive-suite</div>
+          <div style="display:flex; gap:8px;">
+            <button class="copy-btn term-action-btn btn-primary" data-cmd="scan" id="btn-term-scan">--scan</button>
+            <button class="copy-btn term-action-btn" data-cmd="find" id="btn-term-find">--find-b2b</button>
+            <button class="copy-btn term-action-btn" data-cmd="quotas" id="btn-term-quotas">--quotas</button>
+          </div>
+        </div>
+        <div class="terminal-body" id="terminal-content">
+          <!-- Animated terminal lines injected by app.js -->
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Suite Playground -->
+  <section class="playground-section" id="playground">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Interactive <span class="gradient-text">Suite Playground</span></h2>
+        <p class="section-desc">Experience Mailerone's core algorithms directly in your browser. Generate patterns, calculate deliverability scores, and inspect API limits.</p>
+      </div>
+
+      <!-- Tabs Navigation -->
+      <div class="tabs-container">
+        <button class="tab-btn active" data-tab="tab-name2mail" id="tab-btn-name2mail">
+          <span>🔀 Name2Email Permutator</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-deliverability" id="tab-btn-deliverability">
+          <span>⚡ Deliverability Analyzer</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-osint" id="tab-btn-osint">
+          <span>🕵️ OSINT Identity Profiler</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-live-quotas" id="tab-btn-live-quotas">
+          <span>📊 Live Quota Inspector</span>
+        </button>
+      </div>
+
+      <!-- Tab 1: Name2Email Permutator -->
+      <div class="tab-pane active" id="tab-name2mail">
+        <div class="playground-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; flex-wrap:wrap; gap:12px;">
+            <div>
+              <h3 style="font-size: 1.4rem;">Smart Email Pattern Permutator</h3>
+              <p style="color:var(--text-muted); font-size:0.9rem;">Generates 34 high-probability business email permutations with instant one-click copying.</p>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-secondary sample-perm-btn" data-first="Satya" data-last="Nadella" data-domain="microsoft.com">Sample: Microsoft</button>
+              <button class="btn btn-secondary sample-perm-btn" data-first="Patrick" data-last="Collison" data-domain="stripe.com">Sample: Stripe</button>
+            </div>
+          </div>
+
+          <div class="grid-form">
+            <div class="form-group">
+              <label class="form-label">First Name</label>
+              <input type="text" id="perm-first" class="form-input" value="Satya" placeholder="e.g. John">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Last Name</label>
+              <input type="text" id="perm-last" class="form-input" value="Nadella" placeholder="e.g. Doe">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Company Domain</label>
+              <input type="text" id="perm-domain" class="form-input" value="microsoft.com" placeholder="e.g. google.com">
+            </div>
+          </div>
+
+          <div class="results-header">
+            <span style="font-weight:700; color:var(--accent-cyan);" id="perms-count">33 Patterns</span>
+            <button class="btn btn-secondary" id="btn-copy-all-perms" style="padding: 6px 14px; font-size:0.82rem;">
+              📋 Copy All Patterns
+            </button>
+          </div>
+
+          <div class="chips-grid" id="chips-container">
+            <!-- Dynamically populated candidate chips -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Deliverability Analyzer -->
+      <div class="tab-pane" id="tab-deliverability">
+        <div class="playground-card">
+          <h3 style="font-size: 1.4rem; margin-bottom: 8px;">Multi-Engine Deliverability & Security Scorer</h3>
+          <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 24px;">Calculates domain reputation, active MX servers, SPF/DMARC policies, and burner status.</p>
+
+          <div class="grid-form" style="grid-template-columns: 1fr auto;">
+            <div class="form-group">
+              <input type="email" id="verify-email-input" class="form-input" value="admin@microsoft.com" placeholder="Enter target email (e.g. contact@domain.com)">
+            </div>
+            <button class="btn btn-primary" id="btn-run-verify" style="height: 46px; align-self: flex-end;">
+              ⚡ Scan Email
+            </button>
+          </div>
+
+          <div class="score-overview" style="margin-top: 24px;">
+            <div class="gauge-box" id="gauge-box" style="--score-pct: 85;">
+              <div class="gauge-inner">
+                <div class="gauge-number" id="gauge-number">85</div>
+                <div class="gauge-label">Score (0-100)</div>
+              </div>
+            </div>
+
+            <div class="score-details-grid">
+              <div class="score-item">
+                <div class="score-item-title">MX Mail Servers</div>
+                <div class="score-item-val" id="val-mx">Active (Found)</div>
+              </div>
+              <div class="score-item">
+                <div class="score-item-title">SPF Policy</div>
+                <div class="score-item-val" id="val-spf">Valid (v=spf1)</div>
+              </div>
+              <div class="score-item">
+                <div class="score-item-title">DMARC Security</div>
+                <div class="score-item-val" id="val-dmarc">Enforced (p=reject)</div>
+              </div>
+              <div class="score-item">
+                <div class="score-item-title">Disposable Check</div>
+                <div class="score-item-val" id="val-disposable">Clean</div>
+              </div>
+              <div class="score-item">
+                <div class="score-item-title">Provider Type</div>
+                <div class="score-item-val" id="val-free">Corporate / Custom</div>
+              </div>
+              <div class="score-item">
+                <div class="score-item-title">Overall Verdict</div>
+                <div class="score-item-val" id="val-verdict"><span class="badge-tag badge-free">DELIVERABLE</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: OSINT Profiler -->
+      <div class="tab-pane" id="tab-osint">
+        <div class="playground-card">
+          <h3 style="font-size: 1.4rem; margin-bottom: 8px;">OSINT & Public Identity Intelligence</h3>
+          <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 24px;">Correlates email hashes and usernames across Gravatar, GitHub commit histories, and threat feeds.</p>
+
+          <div class="features-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+            <div class="score-item" style="padding: 20px;">
+              <div style="font-size: 1.5rem; margin-bottom: 8px;">🖼️ Gravatar Extraction</div>
+              <p style="color:var(--text-secondary); font-size:0.9rem;">Computes MD5 hash of target email to retrieve profile display names, avatars, and linked bios without hitting user mailboxes.</p>
+            </div>
+            <div class="score-item" style="padding: 20px;">
+              <div style="font-size: 1.5rem; margin-bottom: 8px;">🐙 GitHub Commit Discovery</div>
+              <p style="color:var(--text-secondary); font-size:0.9rem;">Searches global GitHub commit author metadata to link anonymous corporate emails directly to public developer accounts.</p>
+            </div>
+            <div class="score-item" style="padding: 20px;">
+              <div style="font-size: 1.5rem; margin-bottom: 8px;">🛡️ EmailRep Threat Scoring</div>
+              <p style="color:var(--text-secondary); font-size:0.9rem;">Evaluates domain age, known data breach occurrences, spam activity, and malicious credential leak history.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4: Live Quotas -->
+      <div class="tab-pane" id="tab-live-quotas">
+        <div class="playground-card">
+          <h3 style="font-size: 1.4rem; margin-bottom: 8px;">Real-Time Quota & Balance Monitoring</h3>
+          <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 24px;">Monitor your active API keys, credit balances, rate limits, and billing renewal dates.</p>
+
+          <div class="features-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+            <div class="score-item">
+              <div class="score-item-title">Hunter.io Live Quota</div>
+              <div class="score-item-val" style="color:var(--accent-emerald);">25 Searches / 50 Verifs Left</div>
+              <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Monthly Reset: Day 1 of month</div>
+            </div>
+            <div class="score-item">
+              <div class="score-item-title">ZeroBounce Balance</div>
+              <div class="score-item-val" style="color:var(--accent-cyan);">100 Free Credits / Month</div>
+              <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Live `/getcredits` endpoint</div>
+            </div>
+            <div class="score-item">
+              <div class="score-item-title">DeBounce Balance</div>
+              <div class="score-item-val" style="color:var(--accent-purple);">100 Credits (No Expiration)</div>
+              <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Live `/balance` endpoint</div>
+            </div>
+            <div class="score-item">
+              <div class="score-item-title">GitHub Search Rate Limit</div>
+              <div class="score-item-val" style="color:var(--accent-emerald);">30 req/min (Token Mode)</div>
+              <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Live `/rate_limit` endpoint</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Engine Features Showcase Grid -->
+  <section class="features-section" id="features">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">12 Modular <span class="gradient-text">Intelligence Engines</span></h2>
+        <p class="section-desc">Designed for high concurrency, zero bloat, and maximum reliability across all protocols and APIs.</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">💼</div>
+          <h3>MultiFinder All-in-One</h3>
+          <p>Unified pipeline querying Hunter.io, ContactOut, SalesQL, SignalHire, FinalScout, and Name2Email in a single cascade search.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🔀</div>
+          <h3>Name2Email Permutator</h3>
+          <p>Generates 34 business and personal email variations with parallel multi-threaded DNS validation and zero external cost.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🌐</div>
+          <h3>DNS & Security Inspector</h3>
+          <p>Queries Google DoH and local resolvers for MX mail exchange priority, SPF TXT policies, and DMARC enforcement records.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🛡️</div>
+          <h3>Disposable Burner Blocklist</h3>
+          <p>In-memory hash set of over 8,800+ disposable, temporary, and burner email domain providers updated automatically.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h3>Hunter.io Suite</h3>
+          <p>Professional corporate verification, confidence scores, and first+last name company domain email finder.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">👤</div>
+          <h3>ContactOut & SalesQL</h3>
+          <p>Extract verified business emails, direct dial phone numbers, and job titles from name+domain or LinkedIn profile URLs.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>AbstractAPI & ZeroBounce</h3>
+          <p>Real-time deliverability checks, SMTP server validation, catch-all detection, and AI account validity hygiene.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🔍</div>
+          <h3>70+ Provider Domain Sweep</h3>
+          <p>Fast batch sweep testing username availability across Gmail, Yahoo, Outlook, ProtonMail, Mail.ru, Yandex, iCloud, and Zoho.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🕵️</div>
+          <h3>OSINT & Gravatar Extraction</h3>
+          <p>Profile harvesting via MD5 hash analysis, GitHub public commit author correlation, and EmailRep threat scoring.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3>Live Quota & Limits Inspector</h3>
+          <p>Real-time query endpoints inspecting remaining monthly balances, rate limits, plan tiers, and refill dates across all keys.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">⚙️</div>
+          <h3>Interactive Key Manager</h3>
+          <p>Terminal-based API configuration manager with encrypted storage and built-in fallback key rotation.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🧪</div>
+          <h3>Automated Test Suite</h3>
+          <p>Built-in 11-stage integration test suite verifying modules, API schemas, and deliverability calculations.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Free vs Premium Tier Matrix Table -->
+  <section class="matrix-section" id="quotas">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">API Usage Limits & <span class="gradient-text">Tier Matrix</span></h2>
+        <p class="section-desc">Understand monthly allowances, rate limits, and live balance support across every integrated service.</p>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; flex-wrap:wrap; gap:12px;">
+        <input type="text" id="table-search" class="form-input" style="max-width: 320px;" placeholder="🔍 Search service or engine...">
+        <select id="table-filter" class="form-input" style="max-width: 220px;">
+          <option value="all">All Categories</option>
+          <option value="finder">Lead & Email Finders</option>
+          <option value="verifier">Deliverability Verifiers</option>
+          <option value="osint">OSINT & Threat Intelligence</option>
+          <option value="free">Free / Public Tools</option>
+        </select>
+      </div>
+
+      <div class="matrix-table-wrapper">
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th>Service</th>
+              <th>Category</th>
+              <th>Free Tier Allowance</th>
+              <th>Free Rate Limits</th>
+              <th>Premium Tiers</th>
+              <th>Live Balance Check</th>
+            </tr>
+          </thead>
+          <tbody id="matrix-tbody">
+            <tr class="matrix-row" data-category="finder">
+              <td><strong>Hunter.io</strong></td>
+              <td>Lead Finder & Verifier</td>
+              <td><span class="badge-tag badge-free">25 Searches + 50 Verifs / mo</span></td>
+              <td>10 req/min</td>
+              <td>Starter: 500 searches ($49/mo)</td>
+              <td><span style="color:var(--accent-emerald)">✅ Live Searches & Reset Date</span></td>
+            </tr>
+            <tr class="matrix-row" data-category="finder">
+              <td><strong>ContactOut</strong></td>
+              <td>B2B Email & Phone Finder</td>
+              <td><span class="badge-tag badge-free">40 Work Emails + 5 Phones / mo</span></td>
+              <td>Standard query rate</td>
+              <td>Sales: 500 emails ($49/mo)</td>
+              <td><span style="color:var(--accent-emerald)">✅ Key Validation</span></td>
+            </tr>
+            <tr class="matrix-row" data-category="finder">
+              <td><strong>SalesQL</strong></td>
+              <td>LinkedIn & Lead Enrichment</td>
+              <td><span class="badge-tag badge-free">50 Credits / mo</span></td>
+              <td>Standard rate</td>
+              <td>Starter: 1k credits ($39/mo)</td>
+              <td><span style="color:var(--accent-emerald)">✅ Key Validation</span></td>
+            </tr>
+            <tr class="matrix-row" data-category="finder">
+              <td><strong>SignalHire</strong></td>
+              <td>Candidate & Prospect Finder</td>
+              <td><span class="badge-tag badge-free">5 Contact Credits on Signup</span></td>
+              <td>Per-seat limit</td>
+              <td>Lead: 350-1k credits ($49-$99/mo)</td>
+              <td><span style="color:var(--accent-emerald)">✅ Key Validation</span></td>
+            </tr>
+            <tr class="matrix-row" data-category="finder">
+              <td><strong>FinalScout</strong></td>
+              <td>LinkedIn & Domain Finder</td>
+              <td><span class="badge-tag badge-free">20 Regular Email Credits / mo</span></td>
+              <td>Standard query rate</td>
+              <td>Pro: 500 email credits ($49/mo)</td>
+              <td><span style="color:var(--accent-emerald)">✅ Key Validation</span></td>
+            </tr>
+            <tr class="matrix-row" data-category="free">
+              <td><strong>Name2Email (Name2Mail)</strong></td>
+              <td>Smart Permutator & DNS Verifier</td>
+              <td><span class="badge-tag badge-free">100% Free & Unlimited</span></td>
+              <td>Zero limits (Local + DoH)</td>
+              <td>Always Free (Built-in)</td>
+              <td><span style="color:var(--accent-emerald)">✅ Always Active</span></td>
+            </tr>
+            <tr class="matrix-row" data-category="verifier">
+              <td><strong>AbstractAPI</strong></td>
+              <td>Deliverability Verifier</td>
+              <td><span class="badge-tag badge-free">100 Verifications / mo</span></td>
+              <td>1 request / sec</td>
+              <td>Starter: 10k req ($9/mo)</td>
+              <td><span style="color:var(--accent-emerald)">✅ Response Metadata</span></td>
+            </tr>
+            <tr class="matrix-row" data-category="verifier">
+              <td><strong>ZeroBounce</strong></td>
+              <td>Email Hygiene & Scoring</td>
+              <td><span class="badge-tag badge-free">100 Validations / mo</span></td>
+              <td>Standard batch rate</td>
+              <td>Pay-As-You-Go ($0.008/credit)</td>
+              <td><span style="color:var(--accent-emerald)">✅ Live Remaining Credits</span></td>
+            </tr>
+            <tr class="matrix-row" data-category="verifier">
+              <td><strong>DeBounce</strong></td>
+              <td>Email Validation API</td>
+              <td><span class="badge-tag badge-free">100 Free Credits on Signup</span></td>
+              <td>Standard rate</td>
+              <td>Pay-As-You-Go: $10 for 5k credits</td>
+              <td><span style="color:var(--accent-emerald)">✅ Live Remaining Balance</span></td>
+            </tr>
+            <tr class="matrix-row" data-category="verifier">
+              <td><strong>Mailboxlayer</strong></td>
+              <td>Syntax & SMTP Routing</td>
+              <td><span class="badge-tag badge-free">100 Requests / mo (HTTP)</span></td>
+              <td>1 request / sec</td>
+              <td>Basic: 5k req ($14.99/mo, HTTPS)</td>
+              <td><span style="color:var(--accent-emerald)">✅ Key Validation</span></td>
+            </tr>
+            <tr class="matrix-row" data-category="osint">
+              <td><strong>EmailRep.io</strong></td>
+              <td>Threat Intelligence OSINT</td>
+              <td><span class="badge-tag badge-free">Community: 25 req/day</span></td>
+              <td>Daily rolling window</td>
+              <td>Enterprise: 100k req/mo</td>
+              <td><span style="color:var(--accent-emerald)">✅ Key Mode Detection</span></td>
+            </tr>
+            <tr class="matrix-row" data-category="osint">
+              <td><strong>GitHub Search API</strong></td>
+              <td>OSINT Identity Discovery</td>
+              <td><span class="badge-tag badge-free">10 search/min (30 with token)</span></td>
+              <td>Per-IP / Token window</td>
+              <td>Enterprise GitHub API</td>
+              <td><span style="color:var(--accent-emerald)">✅ Live `/rate_limit` API</span></td>
+            </tr>
+            <tr class="matrix-row" data-category="free">
+              <td><strong>Disify & Google DoH</strong></td>
+              <td>DNS & Burner Detection</td>
+              <td><span class="badge-tag badge-free">100% Free Public APIs</span></td>
+              <td>~60 req/min (Disify)</td>
+              <td>Completely Free & Open</td>
+              <td><span style="color:var(--accent-emerald)">✅ Always Active</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Installation & CLI Start -->
+  <section class="install-section" id="install">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Get Started in <span class="gradient-text">Under 30 Seconds</span></h2>
+        <p class="section-desc">Clone the repository, install standard dependencies, and launch the CLI dashboard.</p>
+      </div>
+
+      <div class="code-block">
+        <span>git clone https://github.com/Souvik2biswas/Mailerone.git</span>
+        <button class="copy-btn" data-copy="git clone https://github.com/Souvik2biswas/Mailerone.git">Copy</button>
+      </div>
+
+      <div class="code-block">
+        <span>cd Mailerone &amp;&amp; pip install -r requirements.txt</span>
+        <button class="copy-btn" data-copy="cd Mailerone && pip install -r requirements.txt">Copy</button>
+      </div>
+
+      <div class="code-block">
+        <span>python Mailerone.py</span>
+        <button class="copy-btn" data-copy="python Mailerone.py">Copy</button>
+      </div>
+
+      <div style="margin-top: 32px;">
+        <a href="https://github.com/Souvik2biswas/Mailerone" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="padding: 14px 28px; font-size:1rem;">
+          ⭐ Star Repository on GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">
+    <span>✅</span>
+    <span id="toast-msg">Copied to clipboard!</span>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-links">
+        <a href="https://github.com/Souvik2biswas/Mailerone" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+        <a href="https://github.com/Souvik2biswas/Mailerone/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">GPL-3.0 License</a>
+        <a href="https://github.com/Souvik2biswas/Mailerone/issues" target="_blank" rel="noopener noreferrer">Issue Tracker</a>
+        <a href="#playground">Interactive Playground</a>
+      </div>
+      <p>© 2026 Mailerone Project. Built by Souvik Biswas. Open source software licensed under GNU GPL v3.0.</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
