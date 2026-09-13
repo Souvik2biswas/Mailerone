@@ -129,12 +129,14 @@
         <div class="playground-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; flex-wrap:wrap; gap:12px;">
             <div>
-              <h3 style="font-size: 1.4rem;">Smart Email Pattern Permutator</h3>
-              <p style="color:var(--text-muted); font-size:0.9rem;">Generates 34 high-probability business email permutations with instant one-click copying.</p>
+              <h3 style="font-size: 1.4rem;">Smart B2B Email Pattern Permutator</h3>
+              <p style="color:var(--text-muted); font-size:0.9rem;">Generates 34 RFC & corporate email permutations with instant confidence scoring and deliverability handoff.</p>
             </div>
-            <div style="display:flex; gap:8px;">
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
               <button class="btn btn-secondary sample-perm-btn" data-first="Satya" data-last="Nadella" data-domain="microsoft.com">Sample: Microsoft</button>
               <button class="btn btn-secondary sample-perm-btn" data-first="Patrick" data-last="Collison" data-domain="stripe.com">Sample: Stripe</button>
+              <button class="btn btn-secondary sample-perm-btn" data-first="Sam" data-last="Altman" data-domain="openai.com">Sample: OpenAI</button>
+              <button class="btn btn-secondary sample-perm-btn" data-first="Jensen" data-last="Huang" data-domain="nvidia.com">Sample: Nvidia</button>
             </div>
           </div>
 
@@ -153,15 +155,37 @@
             </div>
           </div>
 
-          <div class="results-header">
-            <span style="font-weight:700; color:var(--accent-yellow);" id="perms-count">33 Patterns</span>
-            <button class="btn btn-secondary" id="btn-copy-all-perms" style="padding: 6px 14px; font-size:0.82rem;">
-              📋 Copy All Patterns
-            </button>
+          <!-- Active Tokens Summary Bar -->
+          <div class="perm-tokens-bar" id="perm-tokens-bar">
+            <!-- Dynamically populated tokens -->
+          </div>
+
+          <!-- Filter & Controls Bar -->
+          <div class="perm-controls-bar">
+            <div class="perm-filter-group">
+              <button class="perm-filter-btn active" data-filter="all" id="perm-filter-all">All (34)</button>
+              <button class="perm-filter-btn" data-filter="top" id="perm-filter-top">🔥 High Probability</button>
+              <button class="perm-filter-btn" data-filter="dotdash" id="perm-filter-dotdash">💼 Dot &amp; Hyphen</button>
+              <button class="perm-filter-btn" data-filter="initials" id="perm-filter-initials">👤 Initials</button>
+              <button class="perm-filter-btn" data-filter="numeric" id="perm-filter-numeric">🔢 Numbered</button>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+              <input type="text" id="perm-search" class="form-input" style="padding: 6px 12px; font-size: 0.85rem; width: 170px;" placeholder="🔍 Filter pattern...">
+              <button class="btn btn-secondary" id="btn-copy-all-perms" style="padding: 6px 12px; font-size:0.82rem;">
+                📋 Copy All
+              </button>
+              <button class="btn btn-secondary" id="btn-export-csv" style="padding: 6px 12px; font-size:0.82rem;">
+                📑 Export CSV
+              </button>
+              <button class="btn btn-secondary" id="btn-export-json" style="padding: 6px 12px; font-size:0.82rem;">
+                📄 Export JSON
+              </button>
+            </div>
           </div>
 
           <div class="chips-grid" id="chips-container">
-            <!-- Dynamically populated candidate chips -->
+            <!-- Dynamically populated rich candidate cards -->
           </div>
         </div>
       </div>

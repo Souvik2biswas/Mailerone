@@ -41,15 +41,97 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 4. Name2Email Interactive Permutator
+  // 4. Name2Email Interactive Permutator (Upgraded UI & Intelligence)
   const inputFirst = document.getElementById('perm-first');
   const inputLast = document.getElementById('perm-last');
   const inputDomain = document.getElementById('perm-domain');
-  const permsCount = document.getElementById('perms-count');
   const chipsContainer = document.getElementById('chips-container');
+  const tokensBar = document.getElementById('perm-tokens-bar');
+  const permSearch = document.getElementById('perm-search');
   const copyAllBtn = document.getElementById('btn-copy-all-perms');
+  const exportCsvBtn = document.getElementById('btn-export-csv');
+  const exportJsonBtn = document.getElementById('btn-export-json');
+  const filterButtons = document.querySelectorAll('.perm-filter-btn');
 
-  let currentPermutations = [];
+  let activeFilter = 'all';
+  let searchQuery = '';
+  let allPermutationsData = [];
+
+  function buildPatternDefinitions(first, last, domain) {
+    const f = first[0];
+    const l = last[0];
+
+    return [
+      // Top / High Probability Corporate Patterns
+      { pattern: `${first}.${last}`, formula: '{first}.{last}@{domain}', cat: 'top', prob: 98, badge: 'prob-high', desc: 'Standard Corporate' },
+      { pattern: `${f}.${last}`, formula: '{f}.{last}@{domain}', cat: 'top', prob: 94, badge: 'prob-high', desc: 'First Initial + Last' },
+      { pattern: `${first}${last}`, formula: '{first}{last}@{domain}', cat: 'top', prob: 91, badge: 'prob-high', desc: 'First + Last Name' },
+      { pattern: `${first}`, formula: '{first}@{domain}', cat: 'top', prob: 88, badge: 'prob-high', desc: 'First Name Only' },
+      { pattern: `${f}${last}`, formula: '{f}{last}@{domain}', cat: 'top', prob: 85, badge: 'prob-high', desc: 'Initial + Lastname' },
+
+      // Dot, Dash & Hyphen Variants
+      { pattern: `${first}_${last}`, formula: '{first}_{last}@{domain}', cat: 'dotdash', prob: 82, badge: 'prob-mid', desc: 'Underscore Delimiter' },
+      { pattern: `${first}-${last}`, formula: '{first}-{last}@{domain}', cat: 'dotdash', prob: 79, badge: 'prob-mid', desc: 'Hyphen Delimiter' },
+      { pattern: `${f}_${last}`, formula: '{f}_{last}@{domain}', cat: 'dotdash', prob: 76, badge: 'prob-mid', desc: 'Initial + Underscore' },
+      { pattern: `${f}-${last}`, formula: '{f}-{last}@{domain}', cat: 'dotdash', prob: 74, badge: 'prob-mid', desc: 'Initial + Hyphen' },
+      { pattern: `${first}.${l}`, formula: '{first}.{l}@{domain}', cat: 'dotdash', prob: 72, badge: 'prob-mid', desc: 'First + Last Initial' },
+      { pattern: `${first}_${l}`, formula: '{first}_{l}@{domain}', cat: 'dotdash', prob: 68, badge: 'prob-mid', desc: 'First + Underscore Initial' },
+      { pattern: `${first}-${l}`, formula: '{first}-{l}@{domain}', cat: 'dotdash', prob: 66, badge: 'prob-mid', desc: 'First + Hyphen Initial' },
+
+      // Initials & Surnames
+      { pattern: `${last}`, formula: '{last}@{domain}', cat: 'initials', prob: 65, badge: 'prob-mid', desc: 'Surname Only' },
+      { pattern: `${last}.${first}`, formula: '{last}.{first}@{domain}', cat: 'initials', prob: 63, badge: 'prob-mid', desc: 'Surname + First' },
+      { pattern: `${last}${first}`, formula: '{last}{first}@{domain}', cat: 'initials', prob: 60, badge: 'prob-mid', desc: 'Last + First' },
+      { pattern: `${last}.${f}`, formula: '{last}.{f}@{domain}', cat: 'initials', prob: 58, badge: 'prob-mid', desc: 'Surname + First Initial' },
+      { pattern: `${last}${f}`, formula: '{last}{f}@{domain}', cat: 'initials', prob: 56, badge: 'prob-mid', desc: 'Surname + Initial' },
+      { pattern: `${last}_${first}`, formula: '{last}_{first}@{domain}', cat: 'initials', prob: 54, badge: 'prob-mid', desc: 'Surname + Underscore' },
+      { pattern: `${last}_${f}`, formula: '{last}_{f}@{domain}', cat: 'initials', prob: 52, badge: 'prob-mid', desc: 'Last + Underscore Init' },
+      { pattern: `${last}-${first}`, formula: '{last}-{first}@{domain}', cat: 'initials', prob: 50, badge: 'prob-low', desc: 'Last + Hyphen First' },
+      { pattern: `${last}-${f}`, formula: '{last}-{f}@{domain}', cat: 'initials', prob: 48, badge: 'prob-low', desc: 'Last + Hyphen Init' },
+      { pattern: `${l}.${first}`, formula: '{l}.{first}@{domain}', cat: 'initials', prob: 46, badge: 'prob-low', desc: 'Last Initial + First' },
+      { pattern: `${l}${first}`, formula: '{l}{first}@{domain}', cat: 'initials', prob: 44, badge: 'prob-low', desc: 'Last Init + First' },
+      { pattern: `${l}_${first}`, formula: '{l}_{first}@{domain}', cat: 'initials', prob: 42, badge: 'prob-low', desc: 'Last Init + Under' },
+      { pattern: `${l}-${first}`, formula: '{l}-${first}@{domain}', cat: 'initials', prob: 40, badge: 'prob-low', desc: 'Last Init + Hyphen' },
+      { pattern: `${f}.${l}`, formula: '{f}.{l}@{domain}', cat: 'initials', prob: 38, badge: 'prob-low', desc: 'Dual Initials Dot' },
+      { pattern: `${f}${l}`, formula: '{f}{l}@{domain}', cat: 'initials', prob: 35, badge: 'prob-low', desc: 'Dual Initials Direct' },
+      { pattern: `${first}${l}`, formula: '{first}{l}@{domain}', cat: 'initials', prob: 32, badge: 'prob-low', desc: 'First + Last Initial Direct' },
+
+      // Tech & Numbered Suffixes
+      { pattern: `${first}.${last}1`, formula: '{first}.{last}1@{domain}', cat: 'numeric', prob: 30, badge: 'prob-low', desc: 'Primary Suffix 1' },
+      { pattern: `${first}.${last}2`, formula: '{first}.{last}2@{domain}', cat: 'numeric', prob: 25, badge: 'prob-low', desc: 'Secondary Suffix 2' },
+      { pattern: `${first}${last}1`, formula: '{first}{last}1@{domain}', cat: 'numeric', prob: 22, badge: 'prob-low', desc: 'Concatenated 1' },
+      { pattern: `${first}${last}123`, formula: '{first}{last}123@{domain}', cat: 'numeric', prob: 18, badge: 'prob-low', desc: 'Sequential 123' },
+      { pattern: `${first}${last}777`, formula: '{first}{last}777@{domain}', cat: 'numeric', prob: 15, badge: 'prob-low', desc: 'Numeric Identifier' },
+      { pattern: `${f}${last}1`, formula: '{f}{last}1@{domain}', cat: 'numeric', prob: 12, badge: 'prob-low', desc: 'Initial + Suffix 1' }
+    ].map(item => ({
+      ...item,
+      email: `${item.pattern}@${domain}`
+    }));
+  }
+
+  function renderTokens(first, last, domain, totalCount, matchesCount) {
+    if (!tokensBar) return;
+    tokensBar.innerHTML = `
+      <div class="perm-token-pill">First: <strong>${first}</strong></div>
+      <div class="perm-token-pill">Last: <strong>${last}</strong></div>
+      <div class="perm-token-pill">Domain: <strong>${domain}</strong></div>
+      <div class="perm-token-pill">Initials: <strong>${first[0]}${last[0]}</strong></div>
+      <div class="perm-token-pill" style="margin-left:auto; border-color:var(--accent-yellow); color:var(--accent-yellow-light);">
+        Showing <strong>${matchesCount}</strong> of <strong>${totalCount}</strong> Patterns
+      </div>
+    `;
+  }
+
+  function sendToDeliverabilityScanner(email) {
+    const tabVerifBtn = document.getElementById('tab-btn-deliverability');
+    const verifInput = document.getElementById('verify-email-input');
+    if (verifInput) verifInput.value = email;
+    if (tabVerifBtn) tabVerifBtn.click();
+    setTimeout(() => {
+      runDeliverabilityCheck();
+      showToast(`Transferred ${email} to Deliverability Analyzer!`);
+    }, 150);
+  }
 
   function generatePermutations() {
     const first = (inputFirst?.value || 'satya').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -58,71 +140,81 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!first || !last || !domain) {
       if (chipsContainer) chipsContainer.innerHTML = '<p class="t-dim">Please enter a valid First Name, Last Name, and Domain.</p>';
+      if (tokensBar) tokensBar.innerHTML = '';
       return;
     }
 
-    const f = first[0];
-    const l = last[0];
+    allPermutationsData = buildPatternDefinitions(first, last, domain);
 
-    const rawPatterns = [
-      `${first}.${last}`,
-      `${first}${last}`,
-      `${f}.${last}`,
-      `${f}${last}`,
-      `${first}_${last}`,
-      `${f}_${last}`,
-      `${first}-${last}`,
-      `${f}-${last}`,
-      `${first}.${l}`,
-      `${first}${l}`,
-      `${first}_${l}`,
-      `${first}-${l}`,
-      `${first}`,
-      `${last}`,
-      `${last}.${first}`,
-      `${last}${first}`,
-      `${last}.${f}`,
-      `${last}${f}`,
-      `${last}_${first}`,
-      `${last}_${f}`,
-      `${last}-${first}`,
-      `${last}-${f}`,
-      `${l}.${first}`,
-      `${l}${first}`,
-      `${l}_${first}`,
-      `${l}-${first}`,
-      `${f}.${l}`,
-      `${f}${l}`,
-      `${first}.${last}1`,
-      `${first}.${last}2`,
-      `${first}${last}1`,
-      `${first}${last}123`,
-      `${first}${last}777`
-    ];
+    // Apply Filter & Search
+    const filtered = allPermutationsData.filter(item => {
+      const matchCategory = (activeFilter === 'all') || (item.cat === activeFilter);
+      const matchSearch = !searchQuery || item.email.includes(searchQuery) || item.desc.toLowerCase().includes(searchQuery);
+      return matchCategory && matchSearch;
+    });
 
-    const uniqueEmails = [...new Set(rawPatterns.map(p => `${p}@${domain}`))];
-    currentPermutations = uniqueEmails;
-
-    if (permsCount) permsCount.textContent = `${uniqueEmails.length} Patterns`;
+    renderTokens(first, last, domain, allPermutationsData.length, filtered.length);
 
     if (chipsContainer) {
       chipsContainer.innerHTML = '';
-      uniqueEmails.forEach((email, idx) => {
-        const chip = document.createElement('div');
-        const isTop = idx < 4;
-        chip.className = `pattern-chip ${isTop ? 'top-choice' : ''}`;
-        chip.innerHTML = `
-          <span>${email}</span>
-          <span style="font-size: 0.75rem; color: ${isTop ? 'var(--accent-emerald)' : 'var(--text-muted)'};">
-            ${isTop ? '★ Top Pattern' : 'Candidate'}
-          </span>
+      if (filtered.length === 0) {
+        chipsContainer.innerHTML = '<p class="t-dim" style="padding:20px;">No patterns matched your search filter.</p>';
+        return;
+      }
+
+      filtered.forEach((item, idx) => {
+        const isTop = item.prob >= 85;
+        const card = document.createElement('div');
+        card.className = `pattern-card ${isTop ? 'top-choice' : ''}`;
+        card.innerHTML = `
+          <div class="pattern-card-header">
+            <span class="pattern-email-text">${item.email}</span>
+            <button class="btn-card-action copy-single-btn" data-email="${item.email}" title="Copy email">
+              📋 Copy
+            </button>
+          </div>
+          <div class="pattern-meta-row">
+            <span class="pattern-formula-tag">${item.formula}</span>
+            <span class="pattern-prob-badge ${item.badge}">
+              ★ ${item.prob}% Match
+            </span>
+          </div>
+          <div class="pattern-actions-row">
+            <span style="font-size:0.75rem; color:var(--text-muted); margin-right:auto;">${item.desc}</span>
+            <button class="btn-card-action btn-card-verify verify-single-btn" data-email="${item.email}">
+              ⚡ Scan Deliverability
+            </button>
+          </div>
         `;
-        chip.addEventListener('click', () => {
-          navigator.clipboard.writeText(email).then(() => {
-            showToast(`Copied candidate: ${email}`);
+
+        // Copy single email
+        const copyBtn = card.querySelector('.copy-single-btn');
+        if (copyBtn) {
+          copyBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            navigator.clipboard.writeText(item.email).then(() => {
+              showToast(`Copied: ${item.email}`);
+            });
+          });
+        }
+
+        // Send to verify
+        const verifyBtn = card.querySelector('.verify-single-btn');
+        if (verifyBtn) {
+          verifyBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sendToDeliverabilityScanner(item.email);
+          });
+        }
+
+        // Clicking whole card copies
+        card.addEventListener('click', () => {
+          navigator.clipboard.writeText(item.email).then(() => {
+            showToast(`Copied: ${item.email}`);
           });
         });
-        chipsContainer.appendChild(chip);
+
+        chipsContainer.appendChild(card);
       });
     }
   }
@@ -131,24 +223,83 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inp) inp.addEventListener('input', generatePermutations);
   });
 
+  if (permSearch) {
+    permSearch.addEventListener('input', (e) => {
+      searchQuery = e.target.value.trim().toLowerCase();
+      generatePermutations();
+    });
+  }
+
+  // Filter Buttons
+  filterButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.getAttribute('data-filter') || 'all';
+      generatePermutations();
+    });
+  });
+
+  // Copy All Action
   if (copyAllBtn) {
     copyAllBtn.addEventListener('click', () => {
-      if (currentPermutations.length > 0) {
-        navigator.clipboard.writeText(currentPermutations.join('\n')).then(() => {
-          showToast(`Copied all ${currentPermutations.length} permutations!`);
+      const emails = allPermutationsData.map(p => p.email);
+      if (emails.length > 0) {
+        navigator.clipboard.writeText(emails.join('\n')).then(() => {
+          showToast(`Copied all ${emails.length} permutations to clipboard!`);
         });
       }
     });
   }
 
-  // Quick Preset Samples
+  // Export CSV Action
+  if (exportCsvBtn) {
+    exportCsvBtn.addEventListener('click', () => {
+      if (allPermutationsData.length === 0) return;
+      let csvContent = 'Email,Pattern Formula,Category,Probability Match,Description\n';
+      allPermutationsData.forEach(p => {
+        csvContent += `"${p.email}","${p.formula}","${p.cat}","${p.prob}%","${p.desc}"\n`;
+      });
+      const dataStr = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute('href', dataStr);
+      downloadAnchor.setAttribute('download', `email_permutations_${inputDomain?.value || 'domain'}.csv`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast('Exported CSV with all 34 permutations!');
+    });
+  }
+
+  // Export JSON Action
+  if (exportJsonBtn) {
+    exportJsonBtn.addEventListener('click', () => {
+      if (allPermutationsData.length === 0) return;
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(allPermutationsData, null, 4));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute('href', dataStr);
+      downloadAnchor.setAttribute('download', `email_permutations_${inputDomain?.value || 'domain'}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast('Exported JSON with all permutations!');
+    });
+  }
+
+  // Preset sample buttons
   document.querySelectorAll('.sample-perm-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       if (inputFirst) inputFirst.value = btn.getAttribute('data-first');
       if (inputLast) inputLast.value = btn.getAttribute('data-last');
       if (inputDomain) inputDomain.value = btn.getAttribute('data-domain');
+      if (permSearch) permSearch.value = '';
+      searchQuery = '';
+      activeFilter = 'all';
+      filterButtons.forEach(b => b.classList.remove('active'));
+      const allBtn = document.getElementById('perm-filter-all');
+      if (allBtn) allBtn.classList.add('active');
       generatePermutations();
-      showToast(`Loaded sample: ${inputFirst.value} ${inputLast.value}`);
+      showToast(`Loaded sample: ${inputFirst.value} ${inputLast.value} (${inputDomain.value})`);
     });
   });
 
