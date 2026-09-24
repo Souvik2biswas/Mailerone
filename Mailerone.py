@@ -4,7 +4,16 @@ import sys
 import time
 import random
 import requests
-from config_manager import load_config, save_config, get_api_key, set_api_key
+from config_manager import (
+    load_config,
+    save_config,
+    get_api_key,
+    get_api_keys,
+    set_api_key,
+    set_api_keys,
+    add_api_key,
+    remove_api_key
+)
 from api_engines import (
     DNSInspectorEngine,
     DisifyEngine,
@@ -554,36 +563,47 @@ def live_quota_inspector_menu():
         if not q.get("success"):
             print(f"{space}{r}[-] {service_name:<18}{w} : {r}{q.get('error', 'Failed')}{w}")
         else:
+            k_count = q.get("total_keys", 1)
+            k_act = q.get("active_keys", 1)
+            key_tag = f" {d}({k_act}/{k_count} keys active){w}" if k_count > 1 else ""
+
             if service_name == "Hunter.io":
-                print(f"{space}{g}[+] {service_name:<18}{w} : Plan: {y}{q.get('plan_name')}{w} | Account: {q.get('account_email')}")
+                print(f"{space}{g}[+] {service_name:<18}{w} : Plan: {y}{q.get('plan_name')}{w} | Account: {q.get('account_email')}{key_tag}")
                 print(f"{space}    - Searches Left      : {g}{q.get('searches_remaining')}{w} / {q.get('searches_available')} (Used: {q.get('searches_used')})")
                 print(f"{space}    - Verifications Left : {g}{q.get('verifications_remaining')}{w} / {q.get('verifications_available')} (Used: {q.get('verifications_used')})")
                 print(f"{space}    - Monthly Reset Date : {q.get('reset_date')}")
             elif service_name == "ContactOut":
-                print(f"{space}{g}[+] {service_name:<18}{w} : Plan: {y}{q.get('plan', 'Free Tier')}{w} | Reset: {q.get('reset_date', 'Monthly')}")
+                print(f"{space}{g}[+] {service_name:<18}{w} : Plan: {y}{q.get('plan', 'Free Tier')}{w} | Reset: {q.get('reset_date', 'Monthly')}{key_tag}")
                 print(f"{space}    - Work Emails Left   : {g}{q.get('work_emails_remaining', 40)}{w} / {q.get('work_emails_total', 40)} per month")
                 print(f"{space}    - Direct Phone Left  : {g}{q.get('phone_credits_remaining', 5)}{w} / {q.get('phone_credits_total', 5)} per month")
             elif service_name == "SalesQL":
-                print(f"{space}{g}[+] {service_name:<18}{w} : Plan: {y}{q.get('plan', 'Free')}{w} | Reset: {q.get('reset_date', 'Monthly')}")
+                print(f"{space}{g}[+] {service_name:<18}{w} : Plan: {y}{q.get('plan', 'Free')}{w} | Reset: {q.get('reset_date', 'Monthly')}{key_tag}")
                 print(f"{space}    - Credits Remaining  : {G}{q.get('credits_remaining', 50)}{w} / {q.get('credits_total', 50)} credits/month")
             elif service_name == "SignalHire":
-                print(f"{space}{g}[+] {service_name:<18}{w} : Plan: {y}{q.get('plan', 'Free Starter')}{w}")
+                print(f"{space}{g}[+] {service_name:<18}{w} : Plan: {y}{q.get('plan', 'Free Starter')}{w}{key_tag}")
                 print(f"{space}    - Contact Credits    : {G}{q.get('contact_credits_remaining', 5)}{w} / {q.get('contact_credits_total', 5)} available")
             elif service_name == "FinalScout":
-                print(f"{space}{g}[+] {service_name:<18}{w} : Plan: {y}{q.get('plan', 'Free')}{w} | Reset: {q.get('reset_date', 'Monthly')}")
+                print(f"{space}{g}[+] {service_name:<18}{w} : Plan: {y}{q.get('plan', 'Free')}{w} | Reset: {q.get('reset_date', 'Monthly')}{key_tag}")
                 print(f"{space}    - Regular Email Left : {g}{q.get('regular_credits_remaining', 20)}{w} / {q.get('regular_credits_total', 20)} credits")
                 print(f"{space}    - AI Email Credits   : {g}{q.get('ai_credits_remaining', 10)}{w} credits")
             elif service_name == "ZeroBounce":
-                print(f"{space}{g}[+] {service_name:<18}{w} : Credits Remaining: {G} {q.get('credits_remaining')} {w} validations")
+                print(f"{space}{g}[+] {service_name:<18}{w} : Credits Remaining: {G} {q.get('credits_remaining')} {w} validations{key_tag}")
             elif service_name == "DeBounce":
-                print(f"{space}{g}[+] {service_name:<18}{w} : Balance Remaining: {G} {q.get('balance')} {w} credits")
+                print(f"{space}{g}[+] {service_name:<18}{w} : Balance Remaining: {G} {q.get('balance')} {w} credits{key_tag}")
             elif service_name == "GitHub API":
-                print(f"{space}{g}[+] {service_name:<18}{w} : Mode: {y}{q.get('auth_mode')}{w}")
+                print(f"{space}{g}[+] {service_name:<18}{w} : Mode: {y}{q.get('auth_mode')}{w}{key_tag}")
                 print(f"{space}    - Search Rate Limit  : {g}{q.get('search_remaining')}{w} / {q.get('search_limit')} requests remaining")
                 print(f"{space}    - Core Rate Limit    : {g}{q.get('core_remaining')}{w} / {q.get('core_limit')} requests remaining")
             else:
                 status_text = q.get("status", "Active")
-                print(f"{space}{g}[+] {service_name:<18}{w} : {g}{status_text}{w}")
+                print(f"{space}{g}[+] {service_name:<18}{w} : {g}{status_text}{w}{key_tag}")
+
+            # Show multi-key breakdown if more than 1 key
+            if "keys_breakdown" in q and len(q["keys_breakdown"]) > 1:
+                for b_item in q["keys_breakdown"]:
+                    key_id = b_item.get("key", b_item.get("token", "****"))
+                    st = b_item.get("status", "N/A")
+                    print(f"{space}      • Key [{key_id}]: {st}")
     print(w + lines)
     pause()
 
@@ -611,10 +631,12 @@ def mask_key(val):
     if isinstance(val, list):
         if not val:
             return ""
-        first = str(val[0])
-        if len(first) > 8:
-            return f"{first[:4]}...{first[-4:]} ({len(val)} key{'s' if len(val)>1 else ''})"
-        return f"({len(val)} key{'s' if len(val)>1 else ''})"
+        if len(val) == 1:
+            first = str(val[0]).strip()
+            return f"{first[:4]}...{first[-4:]}" if len(first) > 8 else "****"
+        previews = [f"{str(k)[:4]}...{str(k)[-4:]}" if len(str(k)) > 8 else "****" for k in val[:2]]
+        extra = f" +{len(val)-2} more" if len(val) > 2 else ""
+        return f"{', '.join(previews)}{extra} ({len(val)} keys)"
     s = str(val).strip()
     if len(s) > 8:
         return f"{s[:4]}...{s[-4:]}"
@@ -624,34 +646,35 @@ def config_keys_menu():
     while True:
         cls()
         banner()
-        cfg = load_config()
-        print(f"{space}{p}=== API Keys, Usage Quotas & Tier Limits Manager ==={w}\n")
-        print(f"{space}{d}Select an engine number [01-11] to change or clear its API key.{w}\n")
+        print(f"{space}{p}=== API Keys, Usage Quotas & Multi-Key Failover Manager ==={w}\n")
+        print(f"{space}{d}Select an engine [01-11] to add, update, or clear its API keys.{w}")
+        print(f"{space}{d}Tip: Enter multiple keys separated by commas for automatic failover.{w}\n")
         
         services = [
-            ("Hunter.io Keys", "hunter_api_keys", "https://hunter.io (25 searches/mo)", APIQuotaEngine.check_hunter_quota),
-            ("ContactOut Key", "contactout_api_key", "https://contactout.com (40 emails/mo)", APIQuotaEngine.check_contactout_quota),
-            ("SalesQL Key", "salesql_api_key", "https://salesql.com (50 credits/mo)", APIQuotaEngine.check_salesql_quota),
-            ("SignalHire Key", "signalhire_api_key", "https://signalhire.com (5 credits/mo)", APIQuotaEngine.check_signalhire_quota),
-            ("FinalScout Key", "finalscout_api_key", "https://finalscout.com (20 credits/mo)", APIQuotaEngine.check_finalscout_quota),
-            ("AbstractAPI Key", "abstract_api_key", "https://abstractapi.com (100 req/mo)", None),
-            ("ZeroBounce Key", "zerobounce_api_key", "https://zerobounce.net (100 credits/mo)", APIQuotaEngine.check_zerobounce_quota),
-            ("Debounce Key", "debounce_api_key", "https://debounce.io (100 free credits)", APIQuotaEngine.check_debounce_quota),
-            ("Mailboxlayer Key", "mailboxlayer_api_key", "https://mailboxlayer.com (100 req/mo)", None),
-            ("EmailRep Key", "emailrep_api_key", "https://emailrep.io (500 req/day)", None),
-            ("GitHub Token", "github_token", "https://github.com/settings/tokens (30 req/min)", APIQuotaEngine.check_github_quota)
+            ("Hunter.io Keys", "hunter_api_keys", "https://hunter.io", APIQuotaEngine.check_hunter_quota),
+            ("ContactOut Keys", "contactout_api_keys", "https://contactout.com", APIQuotaEngine.check_contactout_quota),
+            ("SalesQL Keys", "salesql_api_keys", "https://salesql.com", APIQuotaEngine.check_salesql_quota),
+            ("SignalHire Keys", "signalhire_api_keys", "https://signalhire.com", APIQuotaEngine.check_signalhire_quota),
+            ("FinalScout Keys", "finalscout_api_keys", "https://finalscout.com", APIQuotaEngine.check_finalscout_quota),
+            ("AbstractAPI Keys", "abstract_api_keys", "https://abstractapi.com", None),
+            ("ZeroBounce Keys", "zerobounce_api_keys", "https://zerobounce.net", APIQuotaEngine.check_zerobounce_quota),
+            ("Debounce Keys", "debounce_api_keys", "https://debounce.io", APIQuotaEngine.check_debounce_quota),
+            ("Mailboxlayer Keys", "mailboxlayer_api_keys", "https://mailboxlayer.com", None),
+            ("EmailRep Keys", "emailrep_api_keys", "https://emailrep.io", None),
+            ("GitHub Tokens", "github_tokens", "https://github.com/settings/tokens", APIQuotaEngine.check_github_quota)
         ]
 
         for i, (name, key_field, info, _) in enumerate(services, 1):
-            val = cfg.get(key_field, "")
-            masked = mask_key(val)
-            status = f"{g}[Configured: {masked}]{w}" if (val and (not isinstance(val, list) or len(val) > 0)) else f"{y}[Empty / Not set]{w}"
-            print(f"{space}{b}[{w}{i:02d}{b}]{w} {name:<18} {status:<28} {d}({info}){w}")
+            keys = get_api_keys(key_field)
+            masked = mask_key(keys)
+            count_tag = f"[{len(keys)} key{'s' if len(keys)!=1 else ''}]" if keys else ""
+            status = f"{g}[Configured {count_tag}: {masked}]{w}" if keys else f"{y}[Empty / Not set]{w}"
+            print(f"{space}{b}[{w}{i:02d}{b}]{w} {name:<18} {status:<34} {d}({info}){w}")
 
         print(f"\n{space}{G} [L] Check Real-Time API Quotas & Remaining Credit Balances {w}")
         print(f"{space}{B} [T] View Free Tier vs Premium Tier Quota & Usage Limits Matrix {w}")
         print(f"\n{space}{b}[{w}0{b}]{w} Back to Main Menu\n")
-        ch = input(f"{space}{b}[{w}?{b}]{w} Select option to change [1-11, L, T, 0]: {b}").strip().upper()
+        ch = input(f"{space}{b}[{w}?{b}]{w} Select option to manage [1-11, L, T, 0]: {b}").strip().upper()
         
         if ch == "0" or not ch:
             break
@@ -662,38 +685,50 @@ def config_keys_menu():
         elif ch in [str(x) for x in range(1, len(services) + 1)] or ch in [f"{x:02d}" for x in range(1, len(services) + 1)]:
             idx = int(ch) - 1
             s_name, s_field, s_url, validator_fn = services[idx]
-            current_val = cfg.get(s_field, "")
-            print(f"\n{space}{w}--- Change API Key: {y}{s_name}{w} ---")
-            print(f"{space}Current status: {g}{mask_key(current_val) if current_val else 'None'}{w}")
-            print(f"{space}{d}Note: Enter comma-separated keys for multiple fallback keys.{w}" if s_field == "hunter_api_keys" else "")
-            new_val = input(f"{space}{b}[{w}?{b}]{w} Enter new API key (or press ENTER to clear): {b}").strip()
+            current_keys = get_api_keys(s_field)
             
-            if s_field == "hunter_api_keys":
-                if new_val:
-                    keys_list = [k.strip() for k in new_val.split(",") if k.strip()]
-                    cfg[s_field] = keys_list
-                else:
-                    cfg[s_field] = []
+            print(f"\n{space}{w}--- Manage Keys for: {y}{s_name}{w} ---")
+            if current_keys:
+                print(f"{space}{g}Currently configured ({len(current_keys)} key{'s' if len(current_keys)!=1 else ''}):{w}")
+                for k_idx, k_val in enumerate(current_keys, 1):
+                    print(f"{space}  [{k_idx}] {mask_key(k_val)}")
             else:
-                cfg[s_field] = new_val
+                print(f"{space}{y}Currently configured: None{w}")
             
-            save_config(cfg)
-            print(f"\n{space}{g}[+]{w} API Key for {s_name} updated successfully in config.json!")
+            print(f"\n{space}{d}Instructions:{w}")
+            print(f"{space}{d}- Enter 1 or more keys separated by commas (e.g. key1, key2, key3){w}")
+            print(f"{space}{d}- Enter '+key' to append a key without replacing existing keys{w}")
+            print(f"{space}{d}- Press ENTER without typing anything to clear all keys for this service{w}")
             
-            # Offer instant key validation if new_val was provided and validator exists
-            if new_val and validator_fn:
-                test_key = new_val.split(",")[0].strip() if s_field == "hunter_api_keys" else new_val
-                print(f"{space}{b}[*]{w} Validating key with {s_name} live API...")
+            new_input = input(f"\n{space}{b}[{w}?{b}]{w} Enter key(s): {b}").strip()
+            
+            if not new_input:
+                set_api_keys(s_field, [])
+                print(f"\n{space}{y}[!] Cleared all keys for {s_name}.{w}")
+            elif new_input.startswith("+"):
+                append_val = new_input[1:].strip()
+                if append_val:
+                    add_api_key(s_field, append_val)
+                    updated = get_api_keys(s_field)
+                    print(f"\n{space}{g}[+] Appended new key to {s_name}! Total keys: {len(updated)}{w}")
+            else:
+                set_api_keys(s_field, new_input)
+                updated = get_api_keys(s_field)
+                print(f"\n{space}{g}[+] Updated {s_name}! Saved {len(updated)} key(s) in config.json!{w}")
+
+            updated_keys = get_api_keys(s_field)
+            if updated_keys and validator_fn:
+                print(f"{space}{b}[*]{w} Running live balance check across configured keys...")
                 try:
-                    res = validator_fn(test_key)
+                    res = validator_fn(api_keys=updated_keys)
                     if res.get("success"):
-                        print(f"{space}{g}[✓] Key Verified!{w} {res.get('status', 'Active connection established.')}")
+                        print(f"{space}{g}[✓] Service Connected!{w} {res.get('status', 'Active connection established.')}")
                         if "credits_remaining" in res:
-                            print(f"{space}    - Remaining Balance: {G}{res['credits_remaining']}{w} credits")
+                            print(f"{space}    - Total Credits: {G}{res['credits_remaining']}{w}")
                         elif "work_emails_remaining" in res:
-                            print(f"{space}    - Work Emails Left : {G}{res['work_emails_remaining']}{w} / {res.get('work_emails_total', 40)}")
+                            print(f"{space}    - Work Emails  : {G}{res['work_emails_remaining']}{w}")
                     else:
-                        print(f"{space}{y}[!] Notice:{w} {res.get('error', 'Could not verify balance (key saved).')}")
+                        print(f"{space}{y}[!] Notice:{w} {res.get('error', 'Keys saved.')}")
                 except Exception as ex:
                     print(f"{space}{d}(Validation test skipped: {ex}){w}")
             

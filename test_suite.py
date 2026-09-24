@@ -1,6 +1,13 @@
 import time
 import json
-from config_manager import load_config, save_config, get_api_key, set_api_key
+from config_manager import (
+    load_config,
+    save_config,
+    get_api_key,
+    get_api_keys,
+    set_api_key,
+    set_api_keys
+)
 from api_engines import (
     DNSInspectorEngine,
     DisifyEngine,
@@ -178,6 +185,45 @@ def run_tests():
         "duration_sec": round(time.time() - t0, 3)
     }
     print(f" -> API Quota Engine: {report['api_quota_engine']['status']} (Monitored {len(live_quotas)} services, Matrix items: {len(matrix)})")
+
+    # 12. Multi-Key Failover Engine Test
+    print("\n[TEST 12] Multi-Key Configuration & Automatic Failover Engine...")
+    t0 = time.time()
+    set_api_keys("test_mock_platform", ["mock_key_alpha", "mock_key_beta"])
+    retrieved_keys = get_api_keys("test_mock_platform")
+    keys_configured_ok = (len(retrieved_keys) == 2 and retrieved_keys[0] == "mock_key_alpha")
+
+    # Verify that multi-key failover switches from bad key #1 to valid key #2
+    from unittest.mock import patch, MagicMock
+    resp_401 = MagicMock(status_code=401, text="Unauthorized")
+    resp_200 = MagicMock(status_code=200)
+    resp_200.json.return_value = {
+        "data": {
+            "status": "valid",
+            "result": "deliverable",
+            "score": 95,
+            "smtp_check": True
+        }
+    }
+    with patch("requests.get", side_effect=[resp_401, resp_200]):
+        failover_res = HunterEngine.verify("test@example.com", api_keys=["bad_key_1", "good_key_2"])
+
+    failover_ok = (failover_res.get("success") is True and failover_res.get("key_index") == 2)
+
+    # Cleanup mock test key
+    cfg = load_config()
+    cfg.pop("test_mock_platform", None)
+    cfg.pop("test_service_key", None)
+    save_config(cfg)
+
+    report["multi_key_failover"] = {
+        "status": "PASSED" if (keys_configured_ok and failover_ok) else "FAILED",
+        "keys_configured_verified": keys_configured_ok,
+        "failover_loop_verified": failover_ok,
+        "failover_active_key_index": failover_res.get("key_index"),
+        "duration_sec": round(time.time() - t0, 3)
+    }
+    print(f" -> Multi-Key Failover: {report['multi_key_failover']['status']} (Keys preserved: {keys_configured_ok}, Failover to key #2 verified: {failover_ok})")
 
     print("\n" + "="*60)
     print("ALL TESTS COMPLETED!")

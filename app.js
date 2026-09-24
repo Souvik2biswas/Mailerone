@@ -474,19 +474,19 @@ document.addEventListener('DOMContentLoaded', () => {
   if (tableSearch) tableSearch.addEventListener('input', filterMatrix);
   if (tableFilter) tableFilter.addEventListener('change', filterMatrix);
 
-  // 8. API Keys & Engine Configuration Manager
+  // 8. API Keys & Engine Configuration Manager (Multi-Key Failover Supported)
   const keyMap = {
-    'key-hunter': 'hunter_api_keys',
-    'key-contactout': 'contactout_api_key',
-    'key-salesql': 'salesql_api_key',
-    'key-signalhire': 'signalhire_api_key',
-    'key-finalscout': 'finalscout_api_key',
-    'key-abstract': 'abstract_api_key',
-    'key-zerobounce': 'zerobounce_api_key',
-    'key-debounce': 'debounce_api_key',
-    'key-mailboxlayer': 'mailboxlayer_api_key',
-    'key-emailrep': 'emailrep_api_key',
-    'key-github': 'github_token'
+    'key-hunter': { plural: 'hunter_api_keys', singular: 'hunter_api_key' },
+    'key-contactout': { plural: 'contactout_api_keys', singular: 'contactout_api_key' },
+    'key-salesql': { plural: 'salesql_api_keys', singular: 'salesql_api_key' },
+    'key-signalhire': { plural: 'signalhire_api_keys', singular: 'signalhire_api_key' },
+    'key-finalscout': { plural: 'finalscout_api_keys', singular: 'finalscout_api_key' },
+    'key-abstract': { plural: 'abstract_api_keys', singular: 'abstract_api_key' },
+    'key-zerobounce': { plural: 'zerobounce_api_keys', singular: 'zerobounce_api_key' },
+    'key-debounce': { plural: 'debounce_api_keys', singular: 'debounce_api_key' },
+    'key-mailboxlayer': { plural: 'mailboxlayer_api_keys', singular: 'mailboxlayer_api_key' },
+    'key-emailrep': { plural: 'emailrep_api_keys', singular: 'emailrep_api_key' },
+    'key-github': { plural: 'github_tokens', singular: 'github_token' }
   };
 
   // Load saved keys from localStorage
@@ -496,13 +496,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (saved) {
         const parsed = JSON.parse(saved);
         Object.keys(keyMap).forEach(elemId => {
-          const field = keyMap[elemId];
+          const entry = keyMap[elemId];
           const inputElem = document.getElementById(elemId);
-          if (inputElem && parsed[field] !== undefined) {
-            if (Array.isArray(parsed[field])) {
-              inputElem.value = parsed[field].join(', ');
-            } else {
-              inputElem.value = parsed[field] || '';
+          if (inputElem) {
+            const rawVal = parsed[entry.plural] !== undefined ? parsed[entry.plural] : parsed[entry.singular];
+            if (Array.isArray(rawVal)) {
+              inputElem.value = rawVal.join(', ');
+            } else if (rawVal) {
+              inputElem.value = rawVal;
             }
           }
         });
@@ -537,17 +538,15 @@ document.addEventListener('DOMContentLoaded', () => {
     btnSaveKeys.addEventListener('click', () => {
       const configObj = {};
       Object.keys(keyMap).forEach(elemId => {
-        const field = keyMap[elemId];
+        const entry = keyMap[elemId];
         const val = (document.getElementById(elemId)?.value || '').trim();
-        if (field === 'hunter_api_keys') {
-          configObj[field] = val ? val.split(',').map(s => s.trim()).filter(Boolean) : [];
-        } else {
-          configObj[field] = val;
-        }
+        const keysList = val ? val.split(',').map(s => s.trim()).filter(Boolean) : [];
+        configObj[entry.plural] = keysList;
+        configObj[entry.singular] = keysList[0] || '';
       });
 
       localStorage.setItem('mailerone_keys', JSON.stringify(configObj));
-      showToast('API Keys saved successfully to local storage!');
+      showToast('API Keys saved successfully with multi-key failover enabled!');
     });
   }
 
@@ -557,13 +556,11 @@ document.addEventListener('DOMContentLoaded', () => {
     btnExportConfig.addEventListener('click', () => {
       const configObj = {};
       Object.keys(keyMap).forEach(elemId => {
-        const field = keyMap[elemId];
+        const entry = keyMap[elemId];
         const val = (document.getElementById(elemId)?.value || '').trim();
-        if (field === 'hunter_api_keys') {
-          configObj[field] = val ? val.split(',').map(s => s.trim()).filter(Boolean) : [];
-        } else {
-          configObj[field] = val;
-        }
+        const keysList = val ? val.split(',').map(s => s.trim()).filter(Boolean) : [];
+        configObj[entry.plural] = keysList;
+        configObj[entry.singular] = keysList[0] || '';
       });
 
       const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(configObj, null, 4));
@@ -573,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
-      showToast('Exported config.json for Mailerone CLI!');
+      showToast('Exported multi-key config.json for Mailerone CLI!');
     });
   }
 
