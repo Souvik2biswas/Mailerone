@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mailerone — Comprehensive Email Finding, Deliverability Verification & OSINT Suite</title>
-  <meta name="description" content="Mailerone is an advanced, all-in-one email intelligence, lead generation, and OSINT toolkit combining DNS protocol checks, B2B email finders, and multi-API deliverability verification.">
-  <meta name="keywords" content="email finder, OSINT, email verification, B2B leads, ContactOut, SalesQL, SignalHire, FinalScout, Name2Email, deliverability, Hunter.io, ZeroBounce">
+  <title>Mailerone — Comprehensive Email Finding, Multi-Key Deliverability & OSINT Suite</title>
+  <meta name="description" content="Mailerone is an advanced email intelligence, lead generation, and OSINT toolkit with sequential multi-key failover, DNS protocol checks, B2B email finders, and deliverability verification.">
+  <meta name="keywords" content="email finder, OSINT, email verification, B2B leads, ContactOut, SalesQL, SignalHire, FinalScout, Name2Email, deliverability, Hunter.io, ZeroBounce, multi-key failover">
   <meta name="author" content="Souvik Biswas">
 
   <!-- Open Graph -->
-  <meta property="og:title" content="Mailerone — Advanced Email Finding & OSINT Suite">
-  <meta property="og:description" content="All-in-one email finding, multi-engine deliverability verification, and OSINT intelligence suite.">
+  <meta property="og:title" content="Mailerone — Advanced Email Finding, Multi-Key Failover & OSINT Suite">
+  <meta property="og:description" content="All-in-one email finding, sequential multi-key deliverability verification, and OSINT intelligence suite.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://github.com/Souvik2biswas/Mailerone">
 
@@ -41,7 +41,7 @@
       <div class="nav-actions">
         <div class="badge-version">
           <div class="status-dot"></div>
-          <span>v2.1 Online</span>
+          <span>v2.2 • Multi-Key Failover</span>
         </div>
         <a href="https://github.com/Souvik2biswas/Mailerone" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" id="btn-github-nav">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
@@ -55,15 +55,15 @@
   <section class="hero-section">
     <div class="container hero-content">
       <div class="badge-version" style="margin-bottom: 16px;">
-        <span>Multi-API Deliverability • B2B Lead Finders • OSINT Suite</span>
+        <span>Multi-Key Failover • Deliverability Verification • B2B Finders • OSINT Suite</span>
       </div>
 
       <h1 class="hero-title">
-        The Ultimate <span class="gradient-text">Email Intelligence</span> & Verification Toolkit
+        The Ultimate <span class="gradient-text">Email Intelligence</span> &amp; Verification Toolkit
       </h1>
 
       <p class="hero-subtitle">
-        Seamlessly combine DNS security inspection, SMTP handshakes, 8,800+ burner domain blocklists, and elite B2B finders into a unified, high-performance dashboard.
+        Seamlessly combine DNS security inspection, SMTP handshakes, 8,800+ burner domain blocklists, resilient multi-key API failover, and elite B2B finders into a unified, high-performance dashboard.
       </p>
 
       <div class="hero-cta-group">
@@ -84,9 +84,10 @@
             <span class="dot dot-green"></span>
           </div>
           <div class="terminal-title">mailerone@terminal ~ interactive-suite</div>
-          <div style="display:flex; gap:8px;">
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
             <button class="copy-btn term-action-btn btn-primary" data-cmd="scan" id="btn-term-scan">--scan</button>
             <button class="copy-btn term-action-btn" data-cmd="find" id="btn-term-find">--find-b2b</button>
+            <button class="copy-btn term-action-btn" data-cmd="failover" id="btn-term-failover">--failover</button>
             <button class="copy-btn term-action-btn" data-cmd="quotas" id="btn-term-quotas">--quotas</button>
           </div>
         </div>
@@ -102,7 +103,7 @@
     <div class="container">
       <div class="section-header">
         <h2 class="section-title">Interactive <span class="gradient-text">Suite Playground</span></h2>
-        <p class="section-desc">Experience Mailerone's core algorithms directly in your browser. Generate patterns, calculate deliverability scores, and inspect API limits.</p>
+        <p class="section-desc">Experience Mailerone's core algorithms directly in your browser. Generate patterns, calculate deliverability scores, test B2B cascade lookups, profile OSINT identities, and inspect API limits.</p>
       </div>
 
       <!-- Tabs Navigation -->
@@ -112,6 +113,9 @@
         </button>
         <button class="tab-btn" data-tab="tab-deliverability" id="tab-btn-deliverability">
           <span>⚡ Deliverability Analyzer</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-b2b" id="tab-btn-b2b">
+          <span>💼 B2B Multi-Finder</span>
         </button>
         <button class="tab-btn" data-tab="tab-osint" id="tab-btn-osint">
           <span>🕵️ OSINT Identity Profiler</span>
@@ -240,37 +244,114 @@
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Tab 3: OSINT Profiler -->
-      <div class="tab-pane" id="tab-osint">
-        <div class="playground-card">
-          <h3 style="font-size: 1.4rem; margin-bottom: 8px;">OSINT & Public Identity Intelligence</h3>
-          <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 24px;">Correlates email hashes and usernames across Gravatar, GitHub commit histories, and threat feeds.</p>
-
-          <div class="features-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
-            <div class="score-item" style="padding: 20px;">
-              <div style="font-size: 1.5rem; margin-bottom: 8px;">🖼️ Gravatar Extraction</div>
-              <p style="color:var(--text-secondary); font-size:0.9rem;">Computes MD5 hash of target email to retrieve profile display names, avatars, and linked bios without hitting user mailboxes.</p>
+          <!-- Real-Time DNS Records Breakdown (Google DoH Powered) -->
+          <div class="dns-breakdown-box" id="dns-breakdown-box" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+              <h4 style="font-size:1.05rem; display:flex; align-items:center; gap:8px;">
+                <span>🌐</span> Live DNS-over-HTTPS Records Breakdown
+              </h4>
+              <span class="dns-latency-pill" id="dns-latency-pill">⚡ Resolving via DoH...</span>
             </div>
-            <div class="score-item" style="padding: 20px;">
-              <div style="font-size: 1.5rem; margin-bottom: 8px;">🐙 GitHub Commit Discovery</div>
-              <p style="color:var(--text-secondary); font-size:0.9rem;">Searches global GitHub commit author metadata to link anonymous corporate emails directly to public developer accounts.</p>
-            </div>
-            <div class="score-item" style="padding: 20px;">
-              <div style="font-size: 1.5rem; margin-bottom: 8px;">🛡️ EmailRep Threat Scoring</div>
-              <p style="color:var(--text-secondary); font-size:0.9rem;">Evaluates domain age, known data breach occurrences, spam activity, and malicious credential leak history.</p>
+            <div class="dns-records-grid" id="dns-records-grid">
+              <!-- Dynamically populated MX, SPF, DMARC records -->
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Tab 4: Live Quotas -->
+      <!-- Tab 3: B2B Multi-Finder Suite -->
+      <div class="tab-pane" id="tab-b2b">
+        <div class="playground-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; flex-wrap:wrap; gap:12px;">
+            <div>
+              <h3 style="font-size: 1.4rem;">B2B Multi-Finder &amp; Lead Intelligence Cascade</h3>
+              <p style="color:var(--text-muted); font-size:0.9rem;">Simultaneously queries Hunter.io, ContactOut, SalesQL, SignalHire, FinalScout, and Name2Email with sequential multi-key failover.</p>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="btn btn-secondary sample-b2b-btn" data-first="Satya" data-last="Nadella" data-domain="microsoft.com" data-title="CEO">Satya Nadella (Microsoft)</button>
+              <button class="btn btn-secondary sample-b2b-btn" data-first="Patrick" data-last="Collison" data-domain="stripe.com" data-title="CEO &amp; Co-Founder">Patrick Collison (Stripe)</button>
+              <button class="btn btn-secondary sample-b2b-btn" data-first="Sam" data-last="Altman" data-domain="openai.com" data-title="CEO">Sam Altman (OpenAI)</button>
+            </div>
+          </div>
+
+          <div class="grid-form">
+            <div class="form-group">
+              <label class="form-label">First Name</label>
+              <input type="text" id="b2b-first" class="form-input" value="Satya" placeholder="e.g. John">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Last Name</label>
+              <input type="text" id="b2b-last" class="form-input" value="Nadella" placeholder="e.g. Doe">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Company Domain or Prospect URL</label>
+              <input type="text" id="b2b-domain" class="form-input" value="microsoft.com" placeholder="e.g. stripe.com">
+            </div>
+          </div>
+
+          <div style="margin-top:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <div style="font-size:0.85rem; color:var(--text-muted);">
+              Cascade: <span style="color:var(--accent-yellow)">Hunter.io</span> ➔ <span style="color:var(--accent-green)">ContactOut</span> ➔ <span style="color:var(--accent-lime)">SalesQL</span> ➔ <span style="color:var(--accent-yellow-light)">SignalHire</span> ➔ <span style="color:var(--accent-emerald)">FinalScout</span> ➔ <span>Name2Email</span>
+            </div>
+            <button class="btn btn-primary" id="btn-run-b2b">
+              🔍 Run Multi-Finder Cascade
+            </button>
+          </div>
+
+          <!-- B2B Stepper & Results Container -->
+          <div id="b2b-results-container" style="margin-top: 24px;">
+            <!-- Populated dynamically by app.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4: OSINT Profiler -->
+      <div class="tab-pane" id="tab-osint">
+        <div class="playground-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; flex-wrap:wrap; gap:12px;">
+            <div>
+              <h3 style="font-size: 1.4rem;">OSINT &amp; Public Identity Intelligence Profiler</h3>
+              <p style="color:var(--text-muted); font-size:0.9rem;">Reverse-correlates target emails with Gravatar avatars/profiles, GitHub developer commits, and threat feeds.</p>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="btn btn-secondary sample-osint-btn" data-query="torvalds@linux-foundation.org">Linus Torvalds</button>
+              <button class="btn btn-secondary sample-osint-btn" data-query="satya@microsoft.com">Satya Nadella</button>
+              <button class="btn btn-secondary sample-osint-btn" data-query="octocat@github.com">Octocat</button>
+            </div>
+          </div>
+
+          <div class="grid-form" style="grid-template-columns: 1fr auto;">
+            <div class="form-group">
+              <input type="text" id="osint-query-input" class="form-input" value="torvalds@linux-foundation.org" placeholder="Enter target email or GitHub username...">
+            </div>
+            <button class="btn btn-primary" id="btn-run-osint" style="height: 46px; align-self: flex-end;">
+              🕵️ Run OSINT Scan
+            </button>
+          </div>
+
+          <!-- OSINT Output Dossier -->
+          <div id="osint-dossier" style="margin-top: 24px;">
+            <!-- Populated dynamically by app.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 5: Live Quotas -->
       <div class="tab-pane" id="tab-live-quotas">
         <div class="playground-card">
-          <h3 style="font-size: 1.4rem; margin-bottom: 8px;">Real-Time Quota &amp; Balance Monitoring</h3>
-          <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 24px;">Monitor your active API keys, credit balances, rate limits, and billing renewal dates across B2B finders and verifiers.</p>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; flex-wrap:wrap; gap:12px;">
+            <div>
+              <h3 style="font-size: 1.4rem;">Real-Time Quota &amp; Multi-Key Pool Monitoring</h3>
+              <p style="color:var(--text-muted); font-size:0.9rem;">Monitor your active API keys, credit balances, rate limits, and pool failover health across B2B finders and verifiers.</p>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-primary" id="btn-refresh-quotas">🔄 Refresh Pool Status</button>
+            </div>
+          </div>
+
+          <div id="quota-pool-summary" style="margin-bottom: 20px;">
+            <!-- Dynamically populated key pool status -->
+          </div>
 
           <div class="features-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
             <div class="score-item">
@@ -296,7 +377,7 @@
             <div class="score-item">
               <div class="score-item-title">FinalScout Credits</div>
               <div class="score-item-val" style="color:var(--accent-yellow);">20 Regular + 10 AI Credits</div>
-              <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">LinkedIn & Domain search</div>
+              <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">LinkedIn &amp; Domain search</div>
             </div>
             <div class="score-item">
               <div class="score-item-title">ZeroBounce Balance</div>
@@ -317,15 +398,17 @@
         </div>
       </div>
 
-      <!-- Tab 5: API Keys & Config Manager -->
+      <!-- Tab 6: API Keys & Config Manager -->
       <div class="tab-pane" id="tab-keys">
         <div class="playground-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px; flex-wrap:wrap; gap:12px;">
             <div>
               <h3 style="font-size: 1.4rem;">API Keys &amp; Engine Configuration Manager</h3>
-              <p style="color:var(--text-muted); font-size:0.9rem;">Configure, update, or clear API keys directly in your browser. Export automatically to <code>config.json</code>.</p>
+              <p style="color:var(--text-muted); font-size:0.9rem;">Configure, update, or clear API keys directly in your browser with sequential multi-key failover support. Export or import <code>config.json</code>.</p>
             </div>
-            <div style="display:flex; gap:8px;">
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <input type="file" id="input-import-config" accept=".json" style="display:none;">
+              <button class="btn btn-secondary" id="btn-import-config">📤 Import config.json</button>
               <button class="btn btn-secondary" id="btn-export-config">📥 Download config.json</button>
               <button class="btn btn-primary" id="btn-save-keys">💾 Save API Keys</button>
             </div>
@@ -333,7 +416,10 @@
 
           <div class="grid-form" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
             <div class="form-group">
-              <label class="form-label">Hunter.io API Key(s)</label>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">Hunter.io API Key(s)</label>
+                <span class="key-pool-pill" id="pill-key-hunter">0 keys</span>
+              </div>
               <div style="display:flex; gap:8px;">
                 <input type="password" id="key-hunter" class="form-input key-field" placeholder="key1, key2 (comma-separated)">
                 <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-hunter" style="padding:0 12px;">👁️</button>
@@ -341,7 +427,10 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label">ContactOut API Key(s)</label>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">ContactOut API Key(s)</label>
+                <span class="key-pool-pill" id="pill-key-contactout">0 keys</span>
+              </div>
               <div style="display:flex; gap:8px;">
                 <input type="password" id="key-contactout" class="form-input key-field" placeholder="key1, key2 (comma-separated)">
                 <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-contactout" style="padding:0 12px;">👁️</button>
@@ -349,7 +438,10 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label">SalesQL API Key(s)</label>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">SalesQL API Key(s)</label>
+                <span class="key-pool-pill" id="pill-key-salesql">0 keys</span>
+              </div>
               <div style="display:flex; gap:8px;">
                 <input type="password" id="key-salesql" class="form-input key-field" placeholder="key1, key2 (comma-separated)">
                 <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-salesql" style="padding:0 12px;">👁️</button>
@@ -357,7 +449,10 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label">SignalHire API Key(s)</label>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">SignalHire API Key(s)</label>
+                <span class="key-pool-pill" id="pill-key-signalhire">0 keys</span>
+              </div>
               <div style="display:flex; gap:8px;">
                 <input type="password" id="key-signalhire" class="form-input key-field" placeholder="key1, key2 (comma-separated)">
                 <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-signalhire" style="padding:0 12px;">👁️</button>
@@ -365,7 +460,10 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label">FinalScout API Key(s)</label>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">FinalScout API Key(s)</label>
+                <span class="key-pool-pill" id="pill-key-finalscout">0 keys</span>
+              </div>
               <div style="display:flex; gap:8px;">
                 <input type="password" id="key-finalscout" class="form-input key-field" placeholder="key1, key2 (comma-separated)">
                 <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-finalscout" style="padding:0 12px;">👁️</button>
@@ -373,7 +471,10 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label">AbstractAPI Key(s)</label>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">AbstractAPI Key(s)</label>
+                <span class="key-pool-pill" id="pill-key-abstract">0 keys</span>
+              </div>
               <div style="display:flex; gap:8px;">
                 <input type="password" id="key-abstract" class="form-input key-field" placeholder="key1, key2 (comma-separated)">
                 <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-abstract" style="padding:0 12px;">👁️</button>
@@ -381,7 +482,10 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label">ZeroBounce API Key(s)</label>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">ZeroBounce API Key(s)</label>
+                <span class="key-pool-pill" id="pill-key-zerobounce">0 keys</span>
+              </div>
               <div style="display:flex; gap:8px;">
                 <input type="password" id="key-zerobounce" class="form-input key-field" placeholder="key1, key2 (comma-separated)">
                 <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-zerobounce" style="padding:0 12px;">👁️</button>
@@ -389,7 +493,10 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label">DeBounce API Key(s)</label>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">DeBounce API Key(s)</label>
+                <span class="key-pool-pill" id="pill-key-debounce">0 keys</span>
+              </div>
               <div style="display:flex; gap:8px;">
                 <input type="password" id="key-debounce" class="form-input key-field" placeholder="key1, key2 (comma-separated)">
                 <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-debounce" style="padding:0 12px;">👁️</button>
@@ -397,7 +504,10 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label">Mailboxlayer API Key(s)</label>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">Mailboxlayer API Key(s)</label>
+                <span class="key-pool-pill" id="pill-key-mailboxlayer">0 keys</span>
+              </div>
               <div style="display:flex; gap:8px;">
                 <input type="password" id="key-mailboxlayer" class="form-input key-field" placeholder="key1, key2 (comma-separated)">
                 <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-mailboxlayer" style="padding:0 12px;">👁️</button>
@@ -405,7 +515,10 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label">EmailRep API Key(s)</label>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">EmailRep API Key(s)</label>
+                <span class="key-pool-pill" id="pill-key-emailrep">0 keys</span>
+              </div>
               <div style="display:flex; gap:8px;">
                 <input type="password" id="key-emailrep" class="form-input key-field" placeholder="key1, key2 (or blank for Community)">
                 <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-emailrep" style="padding:0 12px;">👁️</button>
@@ -413,7 +526,10 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label">GitHub Access Token(s)</label>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">GitHub Access Token(s)</label>
+                <span class="key-pool-pill" id="pill-key-github">0 keys</span>
+              </div>
               <div style="display:flex; gap:8px;">
                 <input type="password" id="key-github" class="form-input key-field" placeholder="token1, token2 (comma-separated)">
                 <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-github" style="padding:0 12px;">👁️</button>
@@ -422,7 +538,7 @@
           </div>
 
           <div style="margin-top: 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding-top:16px; border-top:1px solid var(--border-subtle);">
-            <span style="font-size:0.85rem; color:var(--accent-yellow-light);">🔐 Keys are stored safely in local browser storage and used for client-side API evaluation.</span>
+            <span style="font-size:0.85rem; color:var(--accent-yellow-light);">🔐 Keys are stored safely in local browser storage and used for client-side API evaluation with failover pooling.</span>
             <button class="btn btn-secondary" id="btn-clear-keys" style="color:var(--accent-rose); border-color:rgba(244,63,94,0.3);">
               🗑️ Clear All Keys
             </button>
@@ -437,11 +553,17 @@
   <section class="features-section" id="features">
     <div class="container">
       <div class="section-header">
-        <h2 class="section-title">12 Modular <span class="gradient-text">Intelligence Engines</span></h2>
-        <p class="section-desc">Designed for high concurrency, zero bloat, and maximum reliability across all protocols and APIs.</p>
+        <h2 class="section-title">13 Modular <span class="gradient-text">Intelligence Engines</span></h2>
+        <p class="section-desc">Designed for high concurrency, zero bloat, and resilient multi-key failover across all protocols and APIs.</p>
       </div>
 
       <div class="features-grid">
+        <div class="feature-card highlight-card">
+          <div class="feature-icon">🔄</div>
+          <h3>Sequential Multi-Key Failover</h3>
+          <p>Gracefully recovers from 401 Unauthorized, 402 Depleted Credits, and 429 Rate Limits, swapping to backup keys with zero downtime.</p>
+        </div>
+
         <div class="feature-card">
           <div class="feature-icon">💼</div>
           <h3>MultiFinder All-in-One</h3>
