@@ -40,11 +40,7 @@ CANONICAL_KEY_MAP = {
 }
 
 DEFAULT_CONFIG = {
-    "hunter_api_keys": [
-        "5d5015259730682de8b542355525b16ab7026c976a72993d",
-        "83e338e3a43cdcc649a1ea49957d2c0223b601bb",
-        "36a4ce62890b18e216951bb2cf4b9748129418f8"
-    ],
+    "hunter_api_keys": [],
     "abstract_api_keys": [],
     "zerobounce_api_keys": [],
     "debounce_api_keys": [],
@@ -80,12 +76,40 @@ def normalize_keys(raw_val):
                 keys.append(p)
     return keys
 
+USER_CONFIG_FILE = os.path.expanduser("~/.mailerone/config.json")
+
+def _load_device_env():
+    """Load key-value pairs from local device .env without committing to codebase."""
+    env_paths = [
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"),
+        os.path.expanduser("~/.env")
+    ]
+    for p in env_paths:
+        if os.path.exists(p):
+            try:
+                with open(p, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#") and "=" in line:
+                            k, v = line.split("=", 1)
+                            k = k.strip()
+                            v = v.strip().strip("'\"")
+                            if k and k not in os.environ:
+                                os.environ[k] = v
+            except Exception:
+                pass
+
+_load_device_env()
+
 def load_config():
-    if not os.path.exists(CONFIG_FILE):
+    # 1. Prefer local project config.json (ignored by git, kept on device)
+    target_file = CONFIG_FILE if os.path.exists(CONFIG_FILE) else (USER_CONFIG_FILE if os.path.exists(USER_CONFIG_FILE) else CONFIG_FILE)
+    
+    if not os.path.exists(target_file):
         save_config(DEFAULT_CONFIG)
         return DEFAULT_CONFIG.copy()
     try:
-        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+        with open(target_file, "r", encoding="utf-8") as f:
             cfg = json.load(f)
             # Ensure all canonical default keys exist
             for k, v in DEFAULT_CONFIG.items():
@@ -97,6 +121,8 @@ def load_config():
 
 def save_config(cfg):
     try:
+        # Ensure directory exists if saving to user profile
+        os.makedirs(os.path.dirname(CONFIG_FILE), exist_ok=True)
         with open(CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump(cfg, f, indent=4)
         return True
@@ -105,37 +131,54 @@ def save_config(cfg):
         return False
 
 def get_api_keys(service_name):
-    """Retrieve all configured keys for a service as a list of strings."""
+    """Retrieve all configured keys for a service as a list of strings from device storage / env."""
     cfg = load_config()
     canonical = CANONICAL_KEY_MAP.get(service_name, service_name)
+    keys = []
     
-    # 1. Try canonical plural key
+    # 1. Try canonical plural key from local device config
     val = cfg.get(canonical)
     if val:
         keys = normalize_keys(val)
-        if keys:
-            return keys
             
     # 2. Try raw service_name
-    val = cfg.get(service_name)
-    if val:
-        keys = normalize_keys(val)
-        if keys:
-            return keys
+    if not keys:
+        val = cfg.get(service_name)
+        if val:
+            keys = normalize_keys(val)
 
     # 3. Check singular alias if service ends in _keys or _tokens
-    if canonical.endswith("_keys"):
-        singular = canonical[:-1]  # e.g. abstract_api_key
-        val = cfg.get(singular)
-        if val:
-            return normalize_keys(val)
-    elif canonical.endswith("_tokens"):
-        singular = canonical[:-1]  # e.g. github_token
-        val = cfg.get(singular)
-        if val:
-            return normalize_keys(val)
+    if not keys:
+        if canonical.endswith("_keys"):
+            singular = canonical[:-1]  # e.g. abstract_api_key
+            val = cfg.get(singular)
+            if val:
+                keys = normalize_keys(val)
+        elif canonical.endswith("_tokens"):
+            singular = canonical[:-1]  # e.g. github_token
+            val = cfg.get(singular)
+            if val:
+                keys = normalize_keys(val)
 
-    return []
+    # 4. Check on-device environment variables (e.g. HUNTER_API_KEYS, HUNTER_API_KEY)
+    env_candidates = [
+        canonical.upper(),
+        service_name.upper(),
+        f"{canonical.upper()}_KEY",
+        f"{canonical.upper()}_KEYS",
+        f"{service_name.upper()}_API_KEY",
+        f"{service_name.upper()}_API_KEYS",
+        f"{service_name.upper()}_KEY",
+        f"{service_name.upper()}_TOKEN"
+    ]
+    for env_var in env_candidates:
+        env_val = os.environ.get(env_var)
+        if env_val:
+            for k in normalize_keys(env_val):
+                if k not in keys:
+                    keys.append(k)
+
+    return keys
 
 def get_api_key(service_name):
     """Backwards-compatible single key getter. Returns first available key or empty string."""

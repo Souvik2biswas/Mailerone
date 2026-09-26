@@ -404,7 +404,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px; flex-wrap:wrap; gap:12px;">
             <div>
               <h3 style="font-size: 1.4rem;">API Keys &amp; Engine Configuration Manager</h3>
-              <p style="color:var(--text-muted); font-size:0.9rem;">Configure, update, or clear API keys directly in your browser with sequential multi-key failover support. Export or import <code>config.json</code>.</p>
+              <p style="color:var(--text-muted); font-size:0.9rem;">Configure, update, or clear API keys directly on your device with sequential multi-key failover. All keys are saved locally in browser storage and are never committed to the codebase.</p>
             </div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
               <input type="file" id="input-import-config" accept=".json" style="display:none;">
@@ -538,7 +538,7 @@
           </div>
 
           <div style="margin-top: 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding-top:16px; border-top:1px solid var(--border-subtle);">
-            <span style="font-size:0.85rem; color:var(--accent-yellow-light);">🔐 Keys are stored safely in local browser storage and used for client-side API evaluation with failover pooling.</span>
+            <span style="font-size:0.85rem; color:var(--accent-yellow-light);">🛡️ <strong>100% On-Device Storage:</strong> All API keys are saved locally on your device (browser LocalStorage) and are never committed to the codebase or sent to external servers.</span>
             <button class="btn btn-secondary" id="btn-clear-keys" style="color:var(--accent-rose); border-color:rgba(244,63,94,0.3);">
               🗑️ Clear All Keys
             </button>

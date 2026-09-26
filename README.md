@@ -162,11 +162,21 @@ Mailerone supports real-time quota inspection and provides a comprehensive break
 
 ---
 
-## 🔑 API Configuration
+## 🔑 API Configuration & On-Device Security
+
+> [!IMPORTANT]
+> **Zero Codebase Leakage Guarantee:** All API credentials are saved **strictly on your local device** (in local `config.json`, `.env`, or browser LocalStorage). `config.json`, `.env`, and secret files are explicitly excluded via `.gitignore` and are never committed or pushed to GitHub.
 
 You can use basic domain inspection, burner checks, Name2Email permutations, and username scans without any API keys. For advanced API features, configure keys either:
-1. Inside the app via **Option `[9] API Keys Configuration Manager`**, or
-2. By editing `config.json`:
+1. Inside the app via **Option `[9] API Keys Configuration Manager`**,
+2. By setting environment variables on your device (e.g. `export HUNTER_API_KEYS="key1,key2"` or `.env`), or
+3. By copying `config.example.json` to `config.json` locally on your device:
+
+```bash
+cp config.example.json config.json
+```
+
+Example local on-device `config.json`:
 
 ```json
 {

@@ -49,8 +49,13 @@ coverage.xml
 .pytest_cache/
 cover/
 
-# Environments
+# Credentials & Secrets (kept on device, never added to codebase)
+config.json
+*.secrets.json
+*.key
 .env
+.env.*
+test_results.json
 .venv
 env/
 venv/
