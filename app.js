@@ -978,6 +978,83 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   const sampleScraperData = {
+    'klyuniv.ac.in': {
+      company_name: 'University of Kalyani',
+      title: 'Home | University of Kalyani',
+      summary: 'State university in Nadia, West Bengal, India, offering higher education across Arts, Science, Education, Engineering, and Commerce with Google Workspace infrastructure.',
+      industry: 'Higher Education & Research Institution',
+      headquarters: ['Kalyani, Nadia, West Bengal 741235, India'],
+      contact_endpoints: [
+        { type: 'Official University Portal', endpoint: 'https://klyuniv.ac.in/' },
+        { type: 'Admissions & Helpdesk Portal', endpoint: 'https://klyuniv.ac.in/contact/' }
+      ],
+      emails: [
+        { email: 'kuhelpdesk@klyuniv.ac.in', category: 'Executive / Personal', role_label: 'Central University Helpdesk', source: 'mailto: contact link' },
+        { email: 'vc_kalyani@klyuniv.ac.in', category: 'Executive / Personal', role_label: 'Office of the Vice Chancellor', source: 'mailto: contact link' },
+        { email: 'dean_artscommerce@klyuniv.ac.in', category: 'Executive / Personal', role_label: 'Dean, Faculty of Arts & Commerce', source: 'faculty directory' },
+        { email: 'dean_education@klyuniv.ac.in', category: 'Executive / Personal', role_label: 'Dean, Faculty of Education', source: 'faculty directory' },
+        { email: 'dean_science@klyuniv.ac.in', category: 'Executive / Personal', role_label: 'Dean, Faculty of Science', source: 'faculty directory' },
+        { email: 'dean_etm@klyuniv.ac.in', category: 'Executive / Personal', role_label: 'Dean, Engineering, Tech & Management', source: 'faculty directory' },
+        { email: 'vcklyuniv@gmail.com', category: 'External / Vendor', role_label: 'VC Backup Inbox (Gmail)', source: 'mailto: backup link' },
+        { email: 'provckalyaniuniversity@gmail.com', category: 'External / Vendor', role_label: 'Pro-VC Backup Inbox (Gmail)', source: 'mailto: backup link' }
+      ],
+      phones: [
+        { number: '03325808694', label: 'Direct Call Link', source: 'tel: link' },
+        { number: '033-2582-8220', label: 'Registrar & General Office', source: 'text context' },
+        { number: '(033) 2582-8378', label: 'Main University PBX', source: 'text context' },
+        { number: '033 2580-8364', label: 'Controller of Examinations', source: 'text context' },
+        { number: '033 2582-8617', label: 'Finance Department', source: 'text context' },
+        { number: '033 2502-5762', label: 'Engineering Office', source: 'text context' }
+      ],
+      socials: {
+        facebook: [{ url: 'http://www.facebook.com/University-of-Kalyani-109117298266461', handle: 'University-of-Kalyani' }],
+        youtube: [{ url: 'http://www.youtube.com/channel/UCuBc1mwmWNMko_AUxZCeqUQ', handle: 'KalyaniUniversityOfficial' }],
+        instagram: [{ url: 'https://www.instagram.com/universityofkalyani', handle: '@universityofkalyani' }],
+        twitter_x: [{ url: 'https://x.com/klyuniv', handle: '@klyuniv' }]
+      },
+      team: [
+        { name: 'Prof. (Dr.) Amalendu Paul', title: 'Registrar / Executive Authority', email: 'kuhelpdesk@klyuniv.ac.in', linkedin: '' },
+        { name: 'Office of the Vice Chancellor', title: 'Executive Head & Leadership', email: 'vc_kalyani@klyuniv.ac.in', linkedin: '' },
+        { name: 'Dean, Faculty of Science', title: 'Academic Executive', email: 'dean_science@klyuniv.ac.in', linkedin: '' },
+        { name: 'Dean, Faculty of Arts & Commerce', title: 'Academic Executive', email: 'dean_artscommerce@klyuniv.ac.in', linkedin: '' }
+      ]
+    },
+    'microsoft.com': {
+      company_name: 'Microsoft Corporation',
+      title: 'Microsoft - Cloud, Computers, Apps & Gaming',
+      summary: 'Microsoft enables digital transformation for the era of an intelligent cloud and an intelligent edge. Its mission is to empower every person and organization on the planet to achieve more.',
+      industry: 'Enterprise Software & Cloud Platforms',
+      headquarters: ['One Microsoft Way, Redmond, WA 98052'],
+      contact_endpoints: [
+        { type: 'Microsoft Support Desk', endpoint: 'https://support.microsoft.com' },
+        { type: 'Commercial Sales', endpoint: 'https://www.microsoft.com/contact-us' }
+      ],
+      emails: [
+        { email: 'satya.nadella@microsoft.com', category: 'Executive / Personal', role_label: 'Chairman & CEO', source: 'executive registry' },
+        { email: 'amy.hood@microsoft.com', category: 'Executive / Personal', role_label: 'Chief Financial Officer', source: 'corporate registry' },
+        { email: 'brad.smith@microsoft.com', category: 'Executive / Personal', role_label: 'Vice Chair & President', source: 'executive registry' },
+        { email: 'support@microsoft.com', category: 'Role / Departmental', role_label: 'Customer Support', source: 'mailto: link' },
+        { email: 'press@microsoft.com', category: 'Role / Departmental', role_label: 'Public Relations & Press', source: 'media route' },
+        { email: 'security@microsoft.com', category: 'Role / Departmental', role_label: 'MSRC Security Incident Response', source: 'security policy' },
+        { email: 'privacy@microsoft.com', category: 'Role / Departmental', role_label: 'Chief Privacy Officer', source: 'privacy legal' }
+      ],
+      phones: [
+        { number: '+1 (800) 642-7676', label: 'Toll-Free Customer Support', source: 'tel: link' },
+        { number: '+1 (425) 882-8080', label: 'Corporate Headquarters', source: 'schema.org' }
+      ],
+      socials: {
+        linkedin_company: [{ url: 'https://www.linkedin.com/company/microsoft', handle: 'microsoft' }],
+        linkedin_personal: [{ url: 'https://www.linkedin.com/in/satyanadella', handle: 'satyanadella' }],
+        twitter_x: [{ url: 'https://x.com/Microsoft', handle: '@Microsoft' }],
+        github: [{ url: 'https://github.com/microsoft', handle: 'microsoft' }],
+        youtube: [{ url: 'https://youtube.com/@Microsoft', handle: 'Microsoft' }]
+      },
+      team: [
+        { name: 'Satya Nadella', title: 'Chairman and Chief Executive Officer', email: 'satya.nadella@microsoft.com', linkedin: 'https://www.linkedin.com/in/satyanadella' },
+        { name: 'Amy Hood', title: 'Executive VP and CFO', email: 'amy.hood@microsoft.com', linkedin: '' },
+        { name: 'Brad Smith', title: 'Vice Chair and President', email: 'brad.smith@microsoft.com', linkedin: 'https://www.linkedin.com/in/bradsmi' }
+      ]
+    },
     'stripe.com': {
       company_name: 'Stripe, Inc.',
       title: 'Stripe | Financial Infrastructure for the Internet',
@@ -1249,8 +1326,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span>🤖 <strong>AI Engine:</strong> <span style="color:var(--accent-yellow); font-weight:600;">${activeAIEngine}</span></span>
               </div>
             </div>
-            <div style="display:flex; gap:8px;">
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
               <button class="btn btn-secondary" id="btn-copy-all-scraped-emails">📋 Copy All Emails</button>
+              <button class="btn btn-secondary" id="btn-download-scraped-csv">📊 Export CSV</button>
               <button class="btn btn-secondary" id="btn-download-scraped-json">📥 Download JSON</button>
             </div>
           </div>
@@ -1486,6 +1564,23 @@ document.addEventListener('DOMContentLoaded', () => {
           showToast(`Exported contacts_${cleanDomain}.json!`);
         });
       }
+
+      // Download Scraped CSV
+      const btnDownloadCSV = document.getElementById('btn-download-scraped-csv');
+      if (btnDownloadCSV) {
+        btnDownloadCSV.addEventListener('click', () => {
+          const header = 'Classification,Email Address,Role / Department,Source\n';
+          const rows = data.emails.map(e => `"${e.category}","${e.email}","${e.role_label}","${e.source || ''}"`).join('\n');
+          const dataStr = 'data:text/csv;charset=utf-8,' + encodeURIComponent(header + rows);
+          const downloadAnchor = document.createElement('a');
+          downloadAnchor.setAttribute('href', dataStr);
+          downloadAnchor.setAttribute('download', `contacts_${cleanDomain}.csv`);
+          document.body.appendChild(downloadAnchor);
+          downloadAnchor.click();
+          downloadAnchor.remove();
+          showToast(`Exported contacts_${cleanDomain}.csv!`);
+        });
+      }
     }
 
     if (btnRunScraper) {
@@ -1518,12 +1613,24 @@ document.addEventListener('DOMContentLoaded', () => {
     ],
     find: [
       '<span class="t-yellow">$ mailerone --find-b2b "Patrick" "Collison" "stripe.com"</span>',
-      '<span class="t-dim">[*] Querying Hunter.io, ContactOut, SalesQL, FinalScout &amp; Name2Email...</span>',
+      '<span class="t-dim">[*] Querying Apollo.io, Hunter.io, ContactOut, SalesQL, FinalScout &amp; Name2Email...</span>',
+      '<span class="t-green">[+] Apollo.io Engine  : Found (Patrick Collison, Chief Executive Officer)</span>',
       '<span class="t-green">[+] Hunter.io Engine  : Found (patrick@stripe.com, Score: 96%)</span>',
-      '<span class="t-green">[+] ContactOut Engine : Found (Work: patrick@stripe.com, Title: CEO)</span>',
+      '<span class="t-green">[+] ContactOut Engine : Found (Work: patrick@stripe.com, Direct Dial Verified)</span>',
       '<span class="t-green">[+] Name2Email Perms  : Generated 34 patterns -&gt; Verified Top Candidate</span>',
       '<span class="t-green">------------------------------------------------------------</span>',
       '<span class="t-yellow">&gt;&gt; PRIMARY IDENTIFIED EMAIL: patrick@stripe.com [HIGH CONFIDENCE]</span>'
+    ],
+    scrape: [
+      '<span class="t-yellow">$ mailerone --scrape "https://klyuniv.ac.in" --ai groq --depth smart</span>',
+      '<span class="t-dim">[*] Crawling routes: /, /contact, /about, /administration...</span>',
+      '<span class="t-green">[+] Target Status     : HTTP 200 OK (346 KB payload analyzed)</span>',
+      '<span class="t-green">[+] Infrastructure    : Google Workspace Enterprise (aspmx.l.google.com)</span>',
+      '<span class="t-green">[+] De-cloaked Inboxes: kuhelpdesk@klyuniv.ac.in, vc_kalyani@klyuniv.ac.in (8 found)</span>',
+      '<span class="t-green">[+] Extracted Phones  : 13 Active Lines (Registrar: 033-2582-8220, Direct: 03325808694)</span>',
+      '<span class="t-lime">[+] Social Channels   : Facebook (University-of-Kalyani), YouTube, Instagram</span>',
+      '<span class="t-green">------------------------------------------------------------</span>',
+      '<span class="t-yellow">&gt;&gt; AI HARVEST COMPLETE: 8 verified inboxes ready for 1-click deliverability handoff</span>'
     ],
     failover: [
       '<span class="t-yellow">$ mailerone --verify contact@stripe.com --failover</span>',
@@ -1539,13 +1646,15 @@ document.addEventListener('DOMContentLoaded', () => {
     quotas: [
       '<span class="t-yellow">$ mailerone --quotas --live</span>',
       '<span class="t-dim">[*] Querying real-time quota APIs &amp; remaining balances...</span>',
+      '<span class="t-green">[+] Apollo.io    : Free Plan (50 / 50 Credits remaining, Reset: Monthly)</span>',
       '<span class="t-green">[+] Hunter.io    : Free Plan (25 searches / 50 verifs left, Reset: 1st of month)</span>',
       '<span class="t-green">[+] ContactOut   : Free Plan (40 Work Emails + 5 Direct Phones remaining)</span>',
       '<span class="t-lime">[+] SalesQL      : Free Plan (50 / 50 Credits remaining, Reset: Monthly)</span>',
-      '<span class="t-green">[+] SignalHire   : Free Starter (5 Contact Credits active)</span>',
+      '<span class="t-green">[+] SignalHire   : Free Starter (10 Contact Credits active)</span>',
       '<span class="t-yellow">[+] FinalScout   : Free Plan (20 Regular + 10 AI Credits remaining)</span>',
       '<span class="t-lime">[+] ZeroBounce   : 100 Validations remaining / month</span>',
       '<span class="t-green">[+] DeBounce     : 100 Credits remaining (Lifetime)</span>',
+      '<span class="t-lime">[+] AI Harvester : 4 Models Configured (OpenAI, Gemini, Groq, Anthropic)</span>',
       '<span class="t-yellow">[+] Name2Email   : 100% Free &amp; Unlimited (Zero external API cost)</span>'
     ]
   };
