@@ -5,7 +5,17 @@ import requests
 import random
 import string
 import json
-import socks
+try:
+    import socks
+    HAVE_SOCKS = True
+except ImportError:
+    HAVE_SOCKS = False
+
+try:
+    from config_manager import get_api_keys
+except ImportError:
+    def get_api_keys(platform):
+        return []
 
 tor = "socks5://127.0.0.1:51567"
 ua = [
@@ -27,11 +37,14 @@ ua = [
 
 proxies = {"http": tor, "https": tor}
 
-_tor = tor.replace("socks5://", "")
-ip, port = _tor.split(":")
-
-socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, ip, int(port))
-socks.wrapmodule(smtplib)
+if HAVE_SOCKS:
+    try:
+        _tor = tor.replace("socks5://", "")
+        ip, port = _tor.split(":")
+        socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, ip, int(port))
+        socks.wrapmodule(smtplib)
+    except Exception:
+        pass
 
 def validate(email):
     nickname, domain = email.split("@")
@@ -173,25 +186,34 @@ def validate(email):
         else:
             return "3"
     elif domain in ["hotmail.com", "outlook.com", "live.com"]:
-        apis = ["847edcb494d94b18bc6eed3046fa31b6", "05cc1ce01d0745799e137a986683e074", "d49ede9756994cf7bb381314761586aa", "4722441959ce4230a25f542305e148d6", "b633355a4c464dbb85ed927030f6166c"]
+        apis = get_api_keys("abstract")
+        if not apis:
+            return "3"
         api = random.choice(apis)
-        resp = requests.get(f"https://emailvalidation.abstractapi.com/v1/?api_key={api}&email={email}")
-        if resp.status_code == 200:
-            if resp.json()["deliverability"] == "DELIVERABLE":
-                return "1"
+        try:
+            resp = requests.get(f"https://emailvalidation.abstractapi.com/v1/?api_key={api}&email={email}", timeout=8)
+            if resp.status_code == 200:
+                if resp.json().get("deliverability") == "DELIVERABLE":
+                    return "1"
+                else:
+                    return "0"
             else:
-                return "0"
-        else:
+                return "3"
+        except Exception:
             return "3"
     elif domain in ["rambler.ua", "rambler.ru", "myrambler.ru", "autorambler.ru", "ro.ru"]:
-        #apis = ["", "", "", "", "", ""]
-        #api = random.choice(apis)
-        api = "b633355a4c464dbb85ed927030f6166c"
-        resp = requests.get(f"https://emailvalidation.abstractapi.com/v1/?api_key={api}&email={email}")
-        if resp.status_code == 200:
-            if resp.json()["deliverability"] == "DELIVERABLE":
-                return "1"
+        apis = get_api_keys("abstract")
+        if not apis:
+            return "3"
+        api = random.choice(apis)
+        try:
+            resp = requests.get(f"https://emailvalidation.abstractapi.com/v1/?api_key={api}&email={email}", timeout=8)
+            if resp.status_code == 200:
+                if resp.json().get("deliverability") == "DELIVERABLE":
+                    return "1"
+                else:
+                    return "0"
             else:
-                return "0"
-        else:
+                return "3"
+        except Exception:
             return "3"
