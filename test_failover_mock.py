@@ -357,5 +357,86 @@ class TestMultiKeyFailover(unittest.TestCase):
             self.assertIn("sales@acme.com", emails)
             self.assertIn("support@acme.com", emails)
 
+    def test_deliverability_score_rubric(self):
+        from multi_verifier import calculate_deliverability_score
+
+        # 1. Perfect Corporate Email (100% DELIVERABLE)
+        dns_good = {
+            "has_mx": True,
+            "mx_records": ["mail1.acme.com", "mail2.acme.com"],
+            "spf": "v=spf1 include:_spf.acme.com ~all",
+            "dmarc": "v=DMARC1; p=reject; sp=reject"
+        }
+        res_corp = calculate_deliverability_score("alex@acme.com", dns_res=dns_good, is_burner=False)
+        self.assertEqual(res_corp["score"], 100)
+        self.assertEqual(res_corp["verdict"], "DELIVERABLE")
+        self.assertEqual(res_corp["breakdown"]["mx"]["points"], 40)
+        self.assertEqual(res_corp["breakdown"]["disposable"]["points"], 25)
+        self.assertEqual(res_corp["breakdown"]["spf"]["points"], 15)
+        self.assertEqual(res_corp["breakdown"]["dmarc"]["points"], 10)
+        self.assertEqual(res_corp["breakdown"]["role"]["points"], 5)
+        self.assertEqual(res_corp["breakdown"]["corporate"]["points"], 5)
+
+        # 2. Free Webmail Provider (95% DELIVERABLE - Corporate=0)
+        res_free = calculate_deliverability_score("alex@gmail.com", dns_res=dns_good, is_burner=False)
+        self.assertEqual(res_free["score"], 95)
+        self.assertEqual(res_free["verdict"], "DELIVERABLE")
+        self.assertEqual(res_free["breakdown"]["corporate"]["points"], 0)
+
+        # 3. Role Account (95% DELIVERABLE - Role=0)
+        res_role = calculate_deliverability_score("support@acme.com", dns_res=dns_good, is_burner=False)
+        self.assertEqual(res_role["score"], 95)
+        self.assertEqual(res_role["breakdown"]["role"]["points"], 0)
+
+        # 4. Disposable Domain Override (10% UNDELIVERABLE)
+        res_burner = calculate_deliverability_score("temp@trashmail.com", dns_res=dns_good, is_burner=True)
+        self.assertEqual(res_burner["score"], 10)
+        self.assertEqual(res_burner["verdict"], "UNDELIVERABLE")
+
+        # 5. Missing MX Records Override (0% UNDELIVERABLE)
+        dns_no_mx = {"has_mx": False, "mx_records": [], "spf": "None", "dmarc": "None"}
+        res_no_mx = calculate_deliverability_score("user@deadhost.xyz", dns_res=dns_no_mx, is_burner=False)
+        self.assertEqual(res_no_mx["score"], 0)
+        self.assertEqual(res_no_mx["verdict"], "UNDELIVERABLE")
+
+        # 6. Invalid syntax
+        res_invalid = calculate_deliverability_score("not_an_email")
+        self.assertEqual(res_invalid["score"], 0)
+        self.assertEqual(res_invalid["verdict"], "UNDELIVERABLE")
+
+    def test_deliverability_score_api_overrides(self):
+        from multi_verifier import calculate_deliverability_score
+        dns_good = {
+            "has_mx": True,
+            "mx_records": ["mail.acme.com"],
+            "spf": "v=spf1 ~all",
+            "dmarc": "v=DMARC1; p=none"
+        }
+
+        # ZeroBounce confirms mailbox invalid -> Drops to <= 15 UNDELIVERABLE
+        api_zb_invalid = {"zerobounce": {"success": True, "status": "invalid"}}
+        res_invalid = calculate_deliverability_score("ghost@acme.com", dns_res=dns_good, api_results=api_zb_invalid)
+        self.assertLessEqual(res_invalid["score"], 15)
+        self.assertEqual(res_invalid["verdict"], "UNDELIVERABLE")
+
+        # AbstractAPI confirms UNDELIVERABLE
+        api_abs_undeliv = {"abstract": {"success": True, "deliverability": "UNDELIVERABLE"}}
+        res_abs = calculate_deliverability_score("fake@acme.com", dns_res=dns_good, api_results=api_abs_undeliv)
+        self.assertLessEqual(res_abs["score"], 15)
+        self.assertEqual(res_abs["verdict"], "UNDELIVERABLE")
+
+        # ZeroBounce confirms valid -> Deliverable with high confidence >= 95
+        api_zb_valid = {"zerobounce": {"success": True, "status": "valid"}}
+        res_valid = calculate_deliverability_score("ceo@acme.com", dns_res=dns_good, api_results=api_zb_valid)
+        self.assertGreaterEqual(res_valid["score"], 95)
+        self.assertEqual(res_valid["verdict"], "DELIVERABLE")
+
+        # Catch-all detection -> Adjusts to RISKY (50-65)
+        api_catchall = {"zerobounce": {"success": True, "status": "catch-all"}}
+        res_catchall = calculate_deliverability_score("any@acme.com", dns_res=dns_good, api_results=api_catchall)
+        self.assertEqual(res_catchall["verdict"], "RISKY")
+        self.assertTrue(50 <= res_catchall["score"] <= 65)
+
 if __name__ == "__main__":
     unittest.main()
+
