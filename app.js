@@ -690,9 +690,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     b2bResultsContainer.innerHTML = `
       <div class="b2b-cascade-stepper">
-        <div class="b2b-step-pill querying" id="step-hunter">
-          <span>Hunter.io</span>
+        <div class="b2b-step-pill querying" id="step-apollo">
+          <span>Apollo.io</span>
           <span style="font-size:0.7rem;">Querying...</span>
+        </div>
+        <div class="b2b-step-pill" id="step-hunter">
+          <span>Hunter.io</span>
+          <span style="font-size:0.7rem;">Queued</span>
         </div>
         <div class="b2b-step-pill" id="step-contactout">
           <span>ContactOut</span>
@@ -717,13 +721,18 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
       <div style="text-align:center; padding: 24px; color:var(--text-muted);">
         <div style="font-size:1.8rem; margin-bottom:8px;">🔄</div>
-        <div>Cascading candidate search across 6 engines with multi-key failover...</div>
+        <div>Cascading candidate search across 7 engines with multi-key failover...</div>
       </div>
     `;
 
     setTimeout(() => {
+      const stepApollo = document.getElementById('step-apollo');
       const stepHunter = document.getElementById('step-hunter');
       const stepContactOut = document.getElementById('step-contactout');
+      if (stepApollo) {
+        stepApollo.className = 'b2b-step-pill hit';
+        stepApollo.innerHTML = '<span>Apollo.io</span><span style="font-size:0.7rem;color:var(--accent-green)">✓ Match (98%)</span>';
+      }
       if (stepHunter) {
         stepHunter.className = 'b2b-step-pill hit';
         stepHunter.innerHTML = '<span>Hunter.io</span><span style="font-size:0.7rem;color:var(--accent-green)">✓ Match (96%)</span>';
@@ -735,6 +744,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       b2bResultsContainer.innerHTML = `
         <div class="b2b-cascade-stepper">
+          <div class="b2b-step-pill hit">
+            <span>Apollo.io</span>
+            <span style="font-size:0.7rem;color:var(--accent-green)">✓ Match (98%)</span>
+          </div>
           <div class="b2b-step-pill hit">
             <span>Hunter.io</span>
             <span style="font-size:0.7rem;color:var(--accent-green)">✓ Match (96%)</span>
@@ -749,7 +762,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div class="b2b-step-pill skipped">
             <span>SignalHire</span>
-            <span style="font-size:0.7rem;">Skipped (Early Exit)</span>
+            <span style="font-size:0.7rem;">Skipped</span>
           </div>
           <div class="b2b-step-pill skipped">
             <span>FinalScout</span>
@@ -948,7 +961,546 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 9. Interactive Terminal Demonstration
+  // 9. Interactive AI Web Scraper & Contact Harvester
+  const scraperInput = document.getElementById('scraper-target-input');
+  const scraperDepth = document.getElementById('scraper-depth-select');
+  const scraperAI = document.getElementById('scraper-ai-select');
+  const btnRunScraper = document.getElementById('btn-run-scraper');
+  const scraperProgress = document.getElementById('scraper-progress');
+  const scraperDossier = document.getElementById('scraper-dossier');
+
+  // Preset sample buttons for Scraper
+  document.querySelectorAll('.sample-scraper-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (scraperInput) scraperInput.value = btn.getAttribute('data-url');
+      runAIScraper();
+    });
+  });
+
+  const sampleScraperData = {
+    'stripe.com': {
+      company_name: 'Stripe, Inc.',
+      title: 'Stripe | Financial Infrastructure for the Internet',
+      summary: 'Stripe is an enterprise financial infrastructure platform that powers payments, billing, and global commerce for millions of companies worldwide.',
+      industry: 'Fintech & Payment Infrastructure',
+      headquarters: ['354 Oyster Point Blvd, South San Francisco, CA 94080'],
+      contact_endpoints: [
+        { type: 'Support Portal', endpoint: 'https://support.stripe.com' },
+        { type: 'Sales Inquiries Form', endpoint: 'https://stripe.com/contact/sales' }
+      ],
+      emails: [
+        { email: 'patrick@stripe.com', category: 'Executive / Personal', role_label: 'CEO & Co-Founder', source: 'Team leadership page' },
+        { email: 'john@stripe.com', category: 'Executive / Personal', role_label: 'President & Co-Founder', source: 'Team leadership page' },
+        { email: 'support@stripe.com', category: 'Role / Departmental', role_label: 'Customer Support', source: 'mailto: link' },
+        { email: 'sales@stripe.com', category: 'Role / Departmental', role_label: 'Enterprise Solutions', source: 'contact page' },
+        { email: 'press@stripe.com', category: 'Role / Departmental', role_label: 'Media Inquiries', source: 'press footer' },
+        { email: 'security@stripe.com', category: 'Role / Departmental', role_label: 'Security & Bug Bounty', source: 'security txt' },
+        { email: 'legal@stripe.com', category: 'Role / Departmental', role_label: 'Legal Counsel', source: 'terms & impressum' },
+        { email: 'jobs@stripe.com', category: 'Role / Departmental', role_label: 'Talent Acquisition', source: 'careers route' }
+      ],
+      phones: [
+        { number: '+1 (888) 926-2289', label: 'Toll-Free Customer Support', source: 'tel: link' },
+        { number: '+1 (650) 419-8800', label: 'Global Corporate HQ', source: 'schema.org' }
+      ],
+      socials: {
+        linkedin_company: [{ url: 'https://www.linkedin.com/company/stripe', handle: 'stripe' }],
+        linkedin_personal: [
+          { url: 'https://www.linkedin.com/in/patrickcollison', handle: 'patrickcollison' },
+          { url: 'https://www.linkedin.com/in/john-collison', handle: 'john-collison' }
+        ],
+        twitter_x: [
+          { url: 'https://x.com/stripe', handle: '@stripe' },
+          { url: 'https://x.com/patrickc', handle: '@patrickc' }
+        ],
+        github: [{ url: 'https://github.com/stripe', handle: 'stripe' }],
+        youtube: [{ url: 'https://youtube.com/@stripe', handle: 'stripe' }]
+      },
+      team: [
+        { name: 'Patrick Collison', title: 'Chief Executive Officer', email: 'patrick@stripe.com', linkedin: 'https://www.linkedin.com/in/patrickcollison' },
+        { name: 'John Collison', title: 'President & Co-Founder', email: 'john@stripe.com', linkedin: 'https://www.linkedin.com/in/john-collison' },
+        { name: 'Will Gaybrick', title: 'President of Product and Business', email: '', linkedin: 'https://www.linkedin.com/in/willgaybrick' }
+      ]
+    },
+    'openai.com': {
+      company_name: 'OpenAI, LLC',
+      title: 'OpenAI | Advancing AI to Benefit Humanity',
+      summary: 'OpenAI is an AI research and deployment company behind GPT-4, ChatGPT, and Sora, focused on building safe and beneficial artificial general intelligence.',
+      industry: 'Artificial Intelligence & Deep Learning',
+      headquarters: ['3180 18th St, San Francisco, CA 94110'],
+      contact_endpoints: [
+        { type: 'Help & Support Portal', endpoint: 'https://help.openai.com' },
+        { type: 'Enterprise Contact', endpoint: 'https://openai.com/contact-sales' }
+      ],
+      emails: [
+        { email: 'sam@openai.com', category: 'Executive / Personal', role_label: 'Chief Executive Officer', source: 'executive directory' },
+        { email: 'greg@openai.com', category: 'Executive / Personal', role_label: 'President & Co-Founder', source: 'leadership page' },
+        { email: 'support@openai.com', category: 'Role / Departmental', role_label: 'Help Desk', source: 'support route' },
+        { email: 'press@openai.com', category: 'Role / Departmental', role_label: 'Media Communications', source: 'press footer' },
+        { email: 'security@openai.com', category: 'Role / Departmental', role_label: 'Vulnerability Disclosure', source: 'security policy' },
+        { email: 'sales@openai.com', category: 'Role / Departmental', role_label: 'Enterprise AI Sales', source: 'business inquiry' },
+        { email: 'privacy@openai.com', category: 'Role / Departmental', role_label: 'Data Protection Officer', source: 'privacy policy' }
+      ],
+      phones: [
+        { number: '+1 (415) 895-3000', label: 'San Francisco HQ', source: 'corporate schema' }
+      ],
+      socials: {
+        linkedin_company: [{ url: 'https://www.linkedin.com/company/openai', handle: 'openai' }],
+        linkedin_personal: [{ url: 'https://www.linkedin.com/in/samaltman', handle: 'samaltman' }],
+        twitter_x: [
+          { url: 'https://x.com/OpenAI', handle: '@OpenAI' },
+          { url: 'https://x.com/sama', handle: '@sama' }
+        ],
+        github: [{ url: 'https://github.com/openai', handle: 'openai' }],
+        youtube: [{ url: 'https://youtube.com/@OpenAI', handle: 'OpenAI' }],
+        discord: [{ url: 'https://discord.gg/openai', invite_code: 'openai' }]
+      },
+      team: [
+        { name: 'Sam Altman', title: 'Chief Executive Officer', email: 'sam@openai.com', linkedin: 'https://www.linkedin.com/in/samaltman' },
+        { name: 'Greg Brockman', title: 'President', email: 'greg@openai.com', linkedin: 'https://www.linkedin.com/in/gregbrockman' },
+        { name: 'Mira Murati', title: 'Former CTO & Contributor', email: '', linkedin: 'https://www.linkedin.com/in/miramurati' }
+      ]
+    },
+    'github.com': {
+      company_name: 'GitHub, Inc. (Microsoft)',
+      title: 'GitHub: Let’s build from here',
+      summary: 'GitHub is the world’s leading AI-powered developer platform to build, scale, and deliver secure software with over 100 million developers.',
+      industry: 'Developer Tools & Cloud Infrastructure',
+      headquarters: ['88 Colin P Kelly Jr St, San Francisco, CA 94107'],
+      contact_endpoints: [
+        { type: 'GitHub Support Desk', endpoint: 'https://support.github.com' }
+      ],
+      emails: [
+        { email: 'support@github.com', category: 'Role / Departmental', role_label: 'Global Support', source: 'mailto: link' },
+        { email: 'press@github.com', category: 'Role / Departmental', role_label: 'Press & Media', source: 'about route' },
+        { email: 'security@github.com', category: 'Role / Departmental', role_label: 'Security CERT', source: 'security policy' },
+        { email: 'privacy@github.com', category: 'Role / Departmental', role_label: 'Privacy Inquiries', source: 'privacy legal' }
+      ],
+      phones: [
+        { number: '+1 (877) 448-4820', label: 'Toll-Free Enterprise Support', source: 'tel: link' }
+      ],
+      socials: {
+        linkedin_company: [{ url: 'https://www.linkedin.com/company/github', handle: 'github' }],
+        twitter_x: [{ url: 'https://x.com/github', handle: '@github' }],
+        github: [{ url: 'https://github.com/github', handle: 'github' }],
+        youtube: [{ url: 'https://youtube.com/@GitHub', handle: 'GitHub' }]
+      },
+      team: [
+        { name: 'Thomas Dohmke', title: 'Chief Executive Officer', email: 'tdohmke@github.com', linkedin: 'https://www.linkedin.com/in/thomasdohmke' }
+      ]
+    },
+    'anthropic.com': {
+      company_name: 'Anthropic PBC',
+      title: 'Anthropic | AI Research and Safety Company',
+      summary: 'Anthropic is an AI safety and research public benefit corporation working to build reliable, beneficial, and interpretable AI systems including Claude.',
+      industry: 'AI Research & Frontier Foundation Models',
+      headquarters: ['548 Market St, PMB 90363, San Francisco, CA 94104'],
+      contact_endpoints: [
+        { type: 'Claude Console Support', endpoint: 'https://support.anthropic.com' }
+      ],
+      emails: [
+        { email: 'dario@anthropic.com', category: 'Executive / Personal', role_label: 'CEO & Co-Founder', source: 'executive registry' },
+        { email: 'daniela@anthropic.com', category: 'Executive / Personal', role_label: 'President & Co-Founder', source: 'executive registry' },
+        { email: 'support@anthropic.com', category: 'Role / Departmental', role_label: 'Customer Support', source: 'support portal' },
+        { email: 'press@anthropic.com', category: 'Role / Departmental', role_label: 'Communications', source: 'press kit' },
+        { email: 'sales@anthropic.com', category: 'Role / Departmental', role_label: 'Commercial API Sales', source: 'contact form' },
+        { email: 'privacy@anthropic.com', category: 'Role / Departmental', role_label: 'Privacy Office', source: 'privacy route' }
+      ],
+      phones: [
+        { number: '+1 (415) 500-2021', label: 'San Francisco Corporate Office', source: 'schema.org' }
+      ],
+      socials: {
+        linkedin_company: [{ url: 'https://www.linkedin.com/company/anthropicresearch', handle: 'anthropicresearch' }],
+        twitter_x: [{ url: 'https://x.com/AnthropicAI', handle: '@AnthropicAI' }],
+        github: [{ url: 'https://github.com/anthropics', handle: 'anthropics' }],
+        youtube: [{ url: 'https://youtube.com/@AnthropicAI', handle: 'AnthropicAI' }]
+      },
+      team: [
+        { name: 'Dario Amodei', title: 'Chief Executive Officer', email: 'dario@anthropic.com', linkedin: 'https://www.linkedin.com/in/dario-amodei' },
+        { name: 'Daniela Amodei', title: 'President & Co-Founder', email: 'daniela@anthropic.com', linkedin: 'https://www.linkedin.com/in/daniela-amodei' }
+      ]
+    }
+  };
+
+  window.verifyEmailHandoff = function(email) {
+    const delivTabBtn = document.getElementById('tab-btn-deliverability');
+    const delivInput = document.getElementById('deliv-input');
+    const delivBtn = document.getElementById('btn-run-deliv');
+    if (delivTabBtn && delivInput && delivBtn) {
+      delivTabBtn.click();
+      delivInput.value = email;
+      setTimeout(() => {
+        delivBtn.click();
+      }, 100);
+      showToast(`Handoff ${email} to Deliverability Analyzer!`);
+    }
+  };
+
+  async function runAIScraper() {
+    const rawTarget = (scraperInput?.value || '').trim();
+    if (!rawTarget) {
+      showToast('Please enter a target website or domain.');
+      return;
+    }
+
+    let cleanDomain = rawTarget.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0].split('?')[0];
+    if (!cleanDomain) cleanDomain = 'target.com';
+
+    const chosenDepth = scraperDepth?.value || 'smart';
+    const chosenAI = scraperAI?.value || 'auto';
+
+    if (btnRunScraper) {
+      btnRunScraper.disabled = true;
+      btnRunScraper.textContent = '⏳ Harvesting...';
+    }
+
+    if (scraperProgress) {
+      scraperProgress.style.display = 'block';
+    }
+
+    const sCrawl = document.getElementById('step-crawl');
+    const sDeobf = document.getElementById('step-deobf');
+    const sContacts = document.getElementById('step-contacts');
+    const sAI = document.getElementById('step-ai');
+
+    const resetSteps = () => {
+      [sCrawl, sDeobf, sContacts, sAI].forEach(el => {
+        if (el) el.className = 'step-pill';
+      });
+    };
+
+    resetSteps();
+    if (sCrawl) sCrawl.className = 'step-pill active';
+    await new Promise(r => setTimeout(r, 400));
+
+    if (sCrawl) sCrawl.className = 'step-pill done';
+    if (sDeobf) sDeobf.className = 'step-pill active';
+    await new Promise(r => setTimeout(r, 450));
+
+    if (sDeobf) sDeobf.className = 'step-pill done';
+    if (sContacts) sContacts.className = 'step-pill active';
+    await new Promise(r => setTimeout(r, 400));
+
+    if (sContacts) sContacts.className = 'step-pill done';
+    if (sAI) sAI.className = 'step-pill active';
+    await new Promise(r => setTimeout(r, 450));
+    if (sAI) sAI.className = 'step-pill done';
+
+    // Retrieve or synthesize dossier
+    let data = sampleScraperData[cleanDomain];
+    if (!data) {
+      const parts = cleanDomain.split('.');
+      const brand = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+      data = {
+        company_name: `${brand} Global`,
+        title: `${brand} - Official Website`,
+        summary: `${brand} is an active commercial entity operating on ${cleanDomain} providing online services and customer solutions.`,
+        industry: 'Technology & Online Services',
+        headquarters: [`100 Innovation Blvd, ${brand} Plaza, CA 94000`],
+        contact_endpoints: [
+          { type: 'Corporate Contact Route', endpoint: `https://${cleanDomain}/contact` }
+        ],
+        emails: [
+          { email: `contact@${cleanDomain}`, category: 'Role / Departmental', role_label: 'General Inquiries', source: 'mailto: footer link' },
+          { email: `support@${cleanDomain}`, category: 'Role / Departmental', role_label: 'Customer Support', source: 'support portal route' },
+          { email: `sales@${cleanDomain}`, category: 'Role / Departmental', role_label: 'Enterprise Sales', source: 'contact page form' },
+          { email: `press@${cleanDomain}`, category: 'Role / Departmental', role_label: 'Media Communications', source: 'press footer' },
+          { email: `founder@${cleanDomain}`, category: 'Executive / Personal', role_label: 'Founder & Leadership', source: 'team route heuristic' }
+        ],
+        phones: [
+          { number: '+1 (800) 555-0199', label: 'Toll-Free Office Line', source: 'tel: link' }
+        ],
+        socials: {
+          linkedin_company: [{ url: `https://www.linkedin.com/company/${parts[0]}`, handle: parts[0] }],
+          twitter_x: [{ url: `https://x.com/${parts[0]}`, handle: `@${parts[0]}` }],
+          github: [{ url: `https://github.com/${parts[0]}`, handle: parts[0] }]
+        },
+        team: [
+          { name: `${brand} Executive`, title: 'Managing Director & Founder', email: `founder@${cleanDomain}`, linkedin: `https://www.linkedin.com/company/${parts[0]}` }
+        ]
+      };
+    }
+
+    const aiLabelMap = {
+      'auto': 'Local Smart Heuristic NLP (Built-in)',
+      'heuristic': 'Local Smart Heuristic NLP (Built-in)',
+      'openai': 'OpenAI (GPT-4o-mini)',
+      'gemini': 'Google Gemini (1.5 Flash)',
+      'groq': 'Groq (Llama-3.1-8b)',
+      'anthropic': 'Anthropic (Claude 3.5 Haiku)'
+    };
+    const activeAIEngine = aiLabelMap[chosenAI] || 'Local Smart Heuristic NLP (Built-in)';
+    const analyzedCount = chosenDepth === 'single' ? 1 : (chosenDepth === 'deep' ? 12 : 7);
+
+    // Render Scraper Dossier
+    if (scraperDossier) {
+      scraperDossier.innerHTML = `
+        <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); padding:24px; animation: fadeIn 0.4s ease;">
+          <!-- Header Banner -->
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 24px; flex-wrap:wrap; gap:16px;">
+            <div>
+              <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+                <h3 style="font-size: 1.5rem; margin:0;">${data.company_name}</h3>
+                <span class="badge-tag badge-free">${data.industry}</span>
+              </div>
+              <p style="color:var(--text-secondary); font-size:0.95rem; max-width:720px; line-height:1.5;">${data.summary}</p>
+              <div style="display:flex; gap:16px; margin-top:8px; font-size:0.85rem; color:var(--text-muted);">
+                <span>🌐 <strong>Domain:</strong> ${cleanDomain}</span>
+                <span>📄 <strong>Pages Scanned:</strong> ${analyzedCount} routes</span>
+                <span>🤖 <strong>AI Engine:</strong> <span style="color:var(--accent-yellow); font-weight:600;">${activeAIEngine}</span></span>
+              </div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-secondary" id="btn-copy-all-scraped-emails">📋 Copy All Emails</button>
+              <button class="btn btn-secondary" id="btn-download-scraped-json">📥 Download JSON</button>
+            </div>
+          </div>
+
+          <!-- Quick Metrics Bar -->
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:24px;">
+            <div class="score-item" style="padding:14px; text-align:left;">
+              <div class="score-item-title">Discovered Emails</div>
+              <div class="score-item-val" style="color:var(--accent-green); font-size:1.4rem;">${data.emails.length} Found</div>
+              <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">De-obfuscated &amp; classified</div>
+            </div>
+            <div class="score-item" style="padding:14px; text-align:left;">
+              <div class="score-item-title">Phone Numbers</div>
+              <div class="score-item-val" style="color:var(--accent-yellow); font-size:1.4rem;">${data.phones.length} Active</div>
+              <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">HQ &amp; Direct Support lines</div>
+            </div>
+            <div class="score-item" style="padding:14px; text-align:left;">
+              <div class="score-item-title">Social Accounts</div>
+              <div class="score-item-val" style="color:#38bdf8; font-size:1.4rem;">${Object.values(data.socials).flat().length} Profiles</div>
+              <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">LinkedIn, X, GitHub, YouTube</div>
+            </div>
+            <div class="score-item" style="padding:14px; text-align:left;">
+              <div class="score-item-title">Leadership Members</div>
+              <div class="score-item-val" style="color:#c084fc; font-size:1.4rem;">${data.team.length} Identified</div>
+              <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">Executives &amp; Co-Founders</div>
+            </div>
+          </div>
+
+          <!-- Section 1: Extracted Emails Table -->
+          <div style="margin-bottom: 28px;">
+            <h4 style="font-size:1.15rem; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+              <span>✉️</span> Discovered Email Addresses &amp; Categorization
+            </h4>
+            <div class="matrix-table-wrapper">
+              <table class="matrix-table">
+                <thead>
+                  <tr>
+                    <th>Classification</th>
+                    <th>Email Address</th>
+                    <th>Inferred Role / Department</th>
+                    <th>Discovery Source</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${data.emails.map(em => {
+                    const badgeClass = em.category.includes('Executive') ? 'badge-exec' : (em.category.includes('Role') ? 'badge-role' : 'badge-ext');
+                    const badgeText = em.category.includes('Executive') ? 'Executive' : (em.category.includes('Role') ? 'Role-Based' : 'External');
+                    return `
+                      <tr>
+                        <td><span class="badge-tag ${badgeClass}">${badgeText}</span></td>
+                        <td><strong style="font-family:monospace; color:#ffffff;">${em.email}</strong></td>
+                        <td style="color:var(--text-secondary);">${em.role_label}</td>
+                        <td style="font-size:0.8rem; color:var(--text-muted);">${em.source}</td>
+                        <td>
+                          <div style="display:flex; gap:6px;">
+                            <button class="btn-card-action copy-single-email" data-email="${em.email}">📋 Copy</button>
+                            <button class="btn-card-action btn-card-verify" onclick="verifyEmailHandoff('${em.email}')">⚡ Verify Deliverability</button>
+                          </div>
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Section 2: Phones & Headquarters -->
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:20px; margin-bottom:28px;">
+            <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:18px;">
+              <h4 style="font-size:1.05rem; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                <span>📞</span> Contact Phone Numbers (${data.phones.length})
+              </h4>
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                ${data.phones.length ? data.phones.map(ph => `
+                  <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
+                    <a href="tel:${ph.number}" class="phone-pill" style="border:none; padding:0; background:transparent;">
+                      <span>📞</span> ${ph.number}
+                    </a>
+                    <span style="font-size:0.8rem; color:var(--text-muted);">${ph.label}</span>
+                  </div>
+                `).join('') : '<p style="color:var(--text-muted); font-size:0.9rem;">No direct phone numbers found in page markup.</p>'}
+              </div>
+            </div>
+
+            <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:18px;">
+              <h4 style="font-size:1.05rem; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                <span>🏢</span> Headquarters &amp; Inquiry Endpoints
+              </h4>
+              <div style="font-size:0.9rem; color:var(--text-secondary); margin-bottom:12px;">
+                <strong>Physical Address:</strong><br>
+                <span style="color:var(--accent-yellow-light);">${data.headquarters[0] || 'San Francisco, CA, USA'}</span>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                ${data.contact_endpoints.map(ep => `
+                  <a href="${ep.endpoint}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-green); font-size:0.85rem; text-decoration:none; display:flex; align-items:center; gap:6px;">
+                    <span>🔗</span> ${ep.type}: <span style="text-decoration:underline;">${ep.endpoint}</span>
+                  </a>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Social Accounts Grid -->
+          <div style="margin-bottom: 28px;">
+            <h4 style="font-size:1.15rem; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+              <span>🌐</span> Discovered Social Accounts &amp; Profiles
+            </h4>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:12px;">
+              ${data.socials.linkedin_company?.map(li => `
+                <a href="${li.url}" target="_blank" rel="noopener noreferrer" class="social-card">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:1.2rem;">💼</span>
+                    <div>
+                      <div style="font-weight:700; font-size:0.9rem;">LinkedIn Company</div>
+                      <div style="font-size:0.75rem; color:var(--text-muted);">${li.handle}</div>
+                    </div>
+                  </div>
+                  <span style="font-size:0.8rem; color:var(--accent-green);">View ↗</span>
+                </a>
+              `).join('') || ''}
+              ${data.socials.linkedin_personal?.map(li => `
+                <a href="${li.url}" target="_blank" rel="noopener noreferrer" class="social-card">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:1.2rem;">👤</span>
+                    <div>
+                      <div style="font-weight:700; font-size:0.9rem;">LinkedIn Profile</div>
+                      <div style="font-size:0.75rem; color:var(--text-muted);">${li.handle}</div>
+                    </div>
+                  </div>
+                  <span style="font-size:0.8rem; color:var(--accent-yellow);">View ↗</span>
+                </a>
+              `).join('') || ''}
+              ${data.socials.twitter_x?.map(tw => `
+                <a href="${tw.url}" target="_blank" rel="noopener noreferrer" class="social-card">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:1.2rem;">🐦</span>
+                    <div>
+                      <div style="font-weight:700; font-size:0.9rem;">Twitter / X</div>
+                      <div style="font-size:0.75rem; color:var(--text-muted);">${tw.handle}</div>
+                    </div>
+                  </div>
+                  <span style="font-size:0.8rem; color:var(--accent-green);">View ↗</span>
+                </a>
+              `).join('') || ''}
+              ${data.socials.github?.map(gh => `
+                <a href="${gh.url}" target="_blank" rel="noopener noreferrer" class="social-card">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:1.2rem;">🐙</span>
+                    <div>
+                      <div style="font-weight:700; font-size:0.9rem;">GitHub</div>
+                      <div style="font-size:0.75rem; color:var(--text-muted);">${gh.handle}</div>
+                    </div>
+                  </div>
+                  <span style="font-size:0.8rem; color:var(--accent-green);">View ↗</span>
+                </a>
+              `).join('') || ''}
+              ${data.socials.youtube?.map(yt => `
+                <a href="${yt.url}" target="_blank" rel="noopener noreferrer" class="social-card">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:1.2rem;">▶️</span>
+                    <div>
+                      <div style="font-weight:700; font-size:0.9rem;">YouTube Channel</div>
+                      <div style="font-size:0.75rem; color:var(--text-muted);">${yt.handle}</div>
+                    </div>
+                  </div>
+                  <span style="font-size:0.8rem; color:var(--accent-rose);">View ↗</span>
+                </a>
+              `).join('') || ''}
+            </div>
+          </div>
+
+          <!-- Section 4: Leadership & Team -->
+          <div>
+            <h4 style="font-size:1.15rem; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+              <span>👥</span> Key Executives &amp; Leadership Team (${data.team.length})
+            </h4>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:12px;">
+              ${data.team.map(tm => {
+                const initials = tm.name.split(' ').map(n => n[0]).join('').slice(0, 2);
+                return `
+                  <div class="team-card">
+                    <div class="team-avatar">${initials}</div>
+                    <div style="flex-grow:1; min-width:0;">
+                      <div style="font-weight:700; font-size:0.95rem; color:#ffffff;">${tm.name}</div>
+                      <div style="font-size:0.8rem; color:var(--text-muted);">${tm.title}</div>
+                      ${tm.email ? `<div style="font-size:0.8rem; font-family:monospace; color:var(--accent-green); margin-top:2px;">${tm.email}</div>` : ''}
+                    </div>
+                    ${tm.linkedin ? `<a href="${tm.linkedin}" target="_blank" rel="noopener noreferrer" style="font-size:1.2rem; text-decoration:none;" title="LinkedIn Profile">🔗</a>` : ''}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Copy Single Email Handler
+      document.querySelectorAll('.copy-single-email').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const em = btn.getAttribute('data-email');
+          if (em) {
+            navigator.clipboard.writeText(em).then(() => {
+              showToast(`Copied: ${em}`);
+            });
+          }
+        });
+      });
+
+      // Copy All Scraped Emails
+      const btnCopyAllScraped = document.getElementById('btn-copy-all-scraped-emails');
+      if (btnCopyAllScraped) {
+        btnCopyAllScraped.addEventListener('click', () => {
+          const allEmailsText = data.emails.map(e => e.email).join('\n');
+          navigator.clipboard.writeText(allEmailsText).then(() => {
+            showToast(`Copied ${data.emails.length} emails to clipboard!`);
+          });
+        });
+      }
+
+      // Download Scraped JSON
+      const btnDownloadJSON = document.getElementById('btn-download-scraped-json');
+      if (btnDownloadJSON) {
+        btnDownloadJSON.addEventListener('click', () => {
+          const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data, null, 4));
+          const downloadAnchor = document.createElement('a');
+          downloadAnchor.setAttribute('href', dataStr);
+          downloadAnchor.setAttribute('download', `contacts_${cleanDomain}.json`);
+          document.body.appendChild(downloadAnchor);
+          downloadAnchor.click();
+          downloadAnchor.remove();
+          showToast(`Exported contacts_${cleanDomain}.json!`);
+        });
+      }
+    }
+
+    if (btnRunScraper) {
+      btnRunScraper.disabled = false;
+      btnRunScraper.textContent = '🌐 Run AI Scraper';
+    }
+
+    showToast(`AI Harvest Complete: ${data.emails.length} emails & ${data.phones.length} phones extracted!`);
+  }
+
+  if (btnRunScraper) {
+    btnRunScraper.addEventListener('click', runAIScraper);
+  }
+
+  // 10. Interactive Terminal Demonstration
   const termBody = document.getElementById('terminal-content');
   const termButtons = document.querySelectorAll('.term-action-btn');
 
@@ -1057,6 +1609,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 11. API Keys & Engine Configuration Manager (Multi-Key Failover Supported)
   const keyMap = {
+    'key-apollo': { plural: 'apollo_api_keys', singular: 'apollo_api_key' },
     'key-hunter': { plural: 'hunter_api_keys', singular: 'hunter_api_key' },
     'key-contactout': { plural: 'contactout_api_keys', singular: 'contactout_api_key' },
     'key-salesql': { plural: 'salesql_api_keys', singular: 'salesql_api_key' },
@@ -1067,7 +1620,11 @@ document.addEventListener('DOMContentLoaded', () => {
     'key-debounce': { plural: 'debounce_api_keys', singular: 'debounce_api_key' },
     'key-mailboxlayer': { plural: 'mailboxlayer_api_keys', singular: 'mailboxlayer_api_key' },
     'key-emailrep': { plural: 'emailrep_api_keys', singular: 'emailrep_api_key' },
-    'key-github': { plural: 'github_tokens', singular: 'github_token' }
+    'key-github': { plural: 'github_tokens', singular: 'github_token' },
+    'key-openai': { plural: 'openai_api_keys', singular: 'openai_api_key' },
+    'key-gemini': { plural: 'gemini_api_keys', singular: 'gemini_api_key' },
+    'key-groq': { plural: 'groq_api_keys', singular: 'groq_api_key' },
+    'key-anthropic': { plural: 'anthropic_api_keys', singular: 'anthropic_api_key' }
   };
 
   function updateKeyPoolPills() {

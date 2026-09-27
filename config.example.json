@@ -1,4 +1,5 @@
 {
+    "apollo_api_keys": [],
     "hunter_api_keys": [],
     "abstract_api_keys": [],
     "zerobounce_api_keys": [],
@@ -9,5 +10,9 @@
     "salesql_api_keys": [],
     "signalhire_api_keys": [],
     "finalscout_api_keys": [],
-    "github_tokens": []
+    "github_tokens": [],
+    "openai_api_keys": [],
+    "gemini_api_keys": [],
+    "groq_api_keys": [],
+    "anthropic_api_keys": []
 }

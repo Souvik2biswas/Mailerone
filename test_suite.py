@@ -13,6 +13,7 @@ from api_engines import (
     DisifyEngine,
     DisposableBlocklistEngine,
     OSINTEngine,
+    ApolloEngine,
     HunterEngine,
     AbstractAPIEngine,
     ZeroBounceEngine,
@@ -25,7 +26,8 @@ from api_engines import (
     FinalScoutEngine,
     Name2EmailEngine,
     MultiFinderEngine,
-    APIQuotaEngine
+    APIQuotaEngine,
+    AIScraperEngine
 )
 from multi_verifier import run_comprehensive_scan
 
@@ -131,16 +133,18 @@ def run_tests():
     }
     print(f" -> Name2Email: {report['name2email_engine']['status']} (Generated {n2e_res.get('total_generated')} patterns, Top: {n2e_res.get('primary_candidate')})")
 
-    # 8. B2B Lead Finding APIs (ContactOut, SalesQL, SignalHire, FinalScout)
-    print("\n[TEST 8] B2B Lead Finding Engines (ContactOut, SalesQL, SignalHire, FinalScout)...")
+    # 8. B2B Lead Finding APIs (Apollo.io, ContactOut, SalesQL, SignalHire, FinalScout)
+    print("\n[TEST 8] B2B Lead Finding Engines (Apollo.io, ContactOut, SalesQL, SignalHire, FinalScout)...")
     t0 = time.time()
+    apollo = ApolloEngine.find_email("microsoft.com", "Satya", "Nadella")
     co = ContactOutEngine.find_email("microsoft.com", "Satya", "Nadella")
     sql = SalesQLEngine.find_email("microsoft.com", "Satya", "Nadella")
     sh = SignalHireEngine.find_email("microsoft.com", "Satya", "Nadella")
     fs = FinalScoutEngine.find_email("microsoft.com", "Satya", "Nadella")
-    b2b_ok = all(isinstance(x, dict) for x in [co, sql, sh, fs])
+    b2b_ok = all(isinstance(x, dict) for x in [apollo, co, sql, sh, fs])
     report["b2b_lead_engines"] = {
         "status": "PASSED" if b2b_ok else "FAILED",
+        "apollo_handled": True,
         "contactout_handled": True,
         "salesql_handled": True,
         "signalhire_handled": True,
@@ -153,7 +157,7 @@ def run_tests():
     print("\n[TEST 9] MultiFinder All-in-One Pipeline...")
     t0 = time.time()
     mf_res = MultiFinderEngine.search("stripe.com", "Patrick", "Collison")
-    mf_ok = len(mf_res.get("engines_queried", [])) >= 5
+    mf_ok = len(mf_res.get("engines_queried", [])) >= 6
     report["multifinder_pipeline"] = {
         "status": "PASSED" if mf_ok else "FAILED",
         "engines_queried": mf_res.get("engines_queried"),
@@ -224,6 +228,42 @@ def run_tests():
         "duration_sec": round(time.time() - t0, 3)
     }
     print(f" -> Multi-Key Failover: {report['multi_key_failover']['status']} (Keys preserved: {keys_configured_ok}, Failover to key #2 verified: {failover_ok})")
+
+    # 13. AI Web Scraper & Contact Harvester Test
+    print("\n[TEST 13] AI Web Scraper & Contact Harvester (De-obfuscation & Heuristics)...")
+    t0 = time.time()
+    mock_html = (
+        "<html><head><title>Stripe - Financial Infrastructure</title></head>"
+        "<body>"
+        "<p>CEO Contact: patrick [at] stripe [dot] com</p>"
+        "<p>Customer Support: <a href='mailto:support@stripe.com'>support@stripe.com</a></p>"
+        "<p>Direct Phone: <a href='tel:+18889262289'>+1 (888) 926-2289</a></p>"
+        "<a href='https://www.linkedin.com/company/stripe'>LinkedIn</a>"
+        "<a href='https://x.com/stripe'>Twitter/X</a>"
+        "<a href='https://github.com/stripe'>GitHub</a>"
+        "<footer>Headquarters: 354 Oyster Point Blvd, South San Francisco, CA 94080</footer>"
+        "</body></html>"
+    )
+    harvest_emails = AIScraperEngine.extract_emails(mock_html, base_domain="stripe.com")
+    harvest_phones = AIScraperEngine.extract_phone_numbers(mock_html)
+    harvest_socials = AIScraperEngine.extract_social_accounts(mock_html)
+
+    scraper_ok = (
+        any(e["email"] == "patrick@stripe.com" and e["category"] == "Executive / Personal" for e in harvest_emails) and
+        any(e["email"] == "support@stripe.com" and e["category"] == "Role / Departmental" for e in harvest_emails) and
+        len(harvest_phones) > 0 and
+        len(harvest_socials["linkedin_company"]) > 0 and
+        len(harvest_socials["github"]) > 0
+    )
+
+    report["ai_scraper_engine"] = {
+        "status": "PASSED" if scraper_ok else "FAILED",
+        "emails_extracted": len(harvest_emails),
+        "phones_extracted": len(harvest_phones),
+        "socials_extracted": len(harvest_socials["linkedin_company"]) + len(harvest_socials["github"]),
+        "duration_sec": round(time.time() - t0, 3)
+    }
+    print(f" -> AI Scraper Engine: {report['ai_scraper_engine']['status']} (Emails: {len(harvest_emails)}, Phones: {len(harvest_phones)}, Socials: {len(harvest_socials['linkedin_company']) + len(harvest_socials['github'])})")
 
     print("\n" + "="*60)
     print("ALL TESTS COMPLETED!")

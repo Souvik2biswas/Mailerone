@@ -5,6 +5,7 @@ from api_engines import (
     DisifyEngine,
     DisposableBlocklistEngine,
     OSINTEngine,
+    ApolloEngine,
     HunterEngine,
     AbstractAPIEngine,
     ZeroBounceEngine,
@@ -145,6 +146,20 @@ def run_comprehensive_scan(email):
         print(f"{space}  {g}[+]{w} Suspicious       : {er_res['suspicious']}")
         print(f"{space}  {g}[+]{w} Leaked in Breach : {er_res['credentials_leaked']}")
         print(f"{space}  {g}[+]{w} Malicious Activity: {er_res['malicious_activity']}")
+
+    # 11. Apollo.io B2B Intelligence & Verification
+    apollo_res = ApolloEngine.verify(email)
+    if apollo_res.get("success"):
+        print(f"\n{space}{p}[11] Apollo.io B2B Intelligence & Verification{w}")
+        print(f"{space}  {g}[+]{w} Status           : {apollo_res.get('status')} (Confidence: {apollo_res.get('confidence', 95)}%)")
+        if apollo_res.get("name"):
+            print(f"{space}  {g}[+]{w} Contact Name     : {apollo_res['name']}")
+        if apollo_res.get("title"):
+            print(f"{space}  {g}[+]{w} Job Title        : {apollo_res['title']}")
+        if apollo_res.get("company"):
+            print(f"{space}  {g}[+]{w} Organization     : {apollo_res['company']}")
+        if apollo_res.get("linkedin_url"):
+            print(f"{space}  {g}[+]{w} LinkedIn Profile : {apollo_res['linkedin_url']}")
 
     print(w + "\n" + lines)
     print(f"{space}{G} SCAN COMPLETE {w} All available validation engines finished.")

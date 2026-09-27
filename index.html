@@ -120,6 +120,9 @@
         <button class="tab-btn" data-tab="tab-osint" id="tab-btn-osint">
           <span>🕵️ OSINT Identity Profiler</span>
         </button>
+        <button class="tab-btn" data-tab="tab-ai-scraper" id="tab-btn-ai-scraper">
+          <span>🌐 AI Web Scraper</span>
+        </button>
         <button class="tab-btn" data-tab="tab-live-quotas" id="tab-btn-live-quotas">
           <span>📊 Live Quota Inspector</span>
         </button>
@@ -265,7 +268,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; flex-wrap:wrap; gap:12px;">
             <div>
               <h3 style="font-size: 1.4rem;">B2B Multi-Finder &amp; Lead Intelligence Cascade</h3>
-              <p style="color:var(--text-muted); font-size:0.9rem;">Simultaneously queries Hunter.io, ContactOut, SalesQL, SignalHire, FinalScout, and Name2Email with sequential multi-key failover.</p>
+              <p style="color:var(--text-muted); font-size:0.9rem;">Simultaneously queries Apollo.io, Hunter.io, ContactOut, SalesQL, SignalHire, FinalScout, and Name2Email with sequential multi-key failover.</p>
             </div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
               <button class="btn btn-secondary sample-b2b-btn" data-first="Satya" data-last="Nadella" data-domain="microsoft.com" data-title="CEO">Satya Nadella (Microsoft)</button>
@@ -291,7 +294,7 @@
 
           <div style="margin-top:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
             <div style="font-size:0.85rem; color:var(--text-muted);">
-              Cascade: <span style="color:var(--accent-yellow)">Hunter.io</span> ➔ <span style="color:var(--accent-green)">ContactOut</span> ➔ <span style="color:var(--accent-lime)">SalesQL</span> ➔ <span style="color:var(--accent-yellow-light)">SignalHire</span> ➔ <span style="color:var(--accent-emerald)">FinalScout</span> ➔ <span>Name2Email</span>
+              Cascade: <span style="color:var(--accent-yellow)">Apollo.io</span> ➔ <span style="color:var(--accent-yellow-light)">Hunter.io</span> ➔ <span style="color:var(--accent-green)">ContactOut</span> ➔ <span style="color:var(--accent-lime)">SalesQL</span> ➔ <span style="color:var(--accent-yellow-light)">SignalHire</span> ➔ <span style="color:var(--accent-emerald)">FinalScout</span> ➔ <span>Name2Email</span>
             </div>
             <button class="btn btn-primary" id="btn-run-b2b">
               🔍 Run Multi-Finder Cascade
@@ -331,6 +334,68 @@
 
           <!-- OSINT Output Dossier -->
           <div id="osint-dossier" style="margin-top: 24px;">
+            <!-- Populated dynamically by app.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: AI Web Scraper & Contact Harvester -->
+      <div class="tab-pane" id="tab-ai-scraper">
+        <div class="playground-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; flex-wrap:wrap; gap:12px;">
+            <div>
+              <h3 style="font-size: 1.4rem;">AI Web Scraper &amp; Corporate Contact Harvester</h3>
+              <p style="color:var(--text-muted); font-size:0.9rem;">Crawls target sites, de-cloaks obfuscated emails, extracts phone numbers, maps social media profiles, and structures leadership.</p>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="btn btn-secondary sample-scraper-btn" data-url="https://stripe.com">Sample: Stripe</button>
+              <button class="btn btn-secondary sample-scraper-btn" data-url="https://openai.com">Sample: OpenAI</button>
+              <button class="btn btn-secondary sample-scraper-btn" data-url="https://github.com">Sample: GitHub</button>
+              <button class="btn btn-secondary sample-scraper-btn" data-url="https://anthropic.com">Sample: Anthropic</button>
+            </div>
+          </div>
+
+          <div class="grid-form" style="grid-template-columns: 2fr 1fr 1fr auto; gap: 12px; align-items: flex-end;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Target Website / Domain</label>
+              <input type="text" id="scraper-target-input" class="form-input" value="https://stripe.com" placeholder="e.g. stripe.com or https://company.com">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Crawl Strategy</label>
+              <select id="scraper-depth-select" class="form-input" style="cursor:pointer;">
+                <option value="smart">Smart Routes (Home, About, Team, Contact)</option>
+                <option value="deep">Deep Crawl (Discovers up to 15 pages)</option>
+                <option value="single">Single Page Only</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">AI Engine</label>
+              <select id="scraper-ai-select" class="form-input" style="cursor:pointer;">
+                <option value="auto">Auto (Local AI + Configured Keys)</option>
+                <option value="heuristic">Built-in Local Heuristic NLP (Free)</option>
+                <option value="openai">OpenAI (GPT-4o-mini)</option>
+                <option value="gemini">Google Gemini (1.5 Flash)</option>
+                <option value="groq">Groq (Llama-3.1)</option>
+                <option value="anthropic">Anthropic (Claude 3.5)</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" id="btn-run-scraper" style="height: 46px;">
+              🌐 Run AI Scraper
+            </button>
+          </div>
+
+          <!-- Live Scraper Stepper / Status -->
+          <div id="scraper-progress" style="display:none; margin-top:20px;">
+            <div class="stepper-track" style="margin-bottom:12px; display:flex; gap:8px; flex-wrap:wrap;">
+              <div class="step-pill" id="step-crawl">1. Crawling Routes</div>
+              <div class="step-pill" id="step-deobf">2. De-obfuscating Emails</div>
+              <div class="step-pill" id="step-contacts">3. Extracting Phones &amp; Socials</div>
+              <div class="step-pill" id="step-ai">4. AI Semantic Structuring</div>
+            </div>
+          </div>
+
+          <!-- Scraper Output Dossier -->
+          <div id="scraper-dossier" style="margin-top: 24px;">
             <!-- Populated dynamically by app.js -->
           </div>
         </div>
@@ -415,6 +480,17 @@
           </div>
 
           <div class="grid-form" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+            <div class="form-group">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">Apollo.io API Key(s)</label>
+                <span class="key-pool-pill" id="pill-key-apollo">0 keys</span>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <input type="password" id="key-apollo" class="form-input key-field" placeholder="key1, key2 (comma-separated)">
+                <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-apollo" style="padding:0 12px;">👁️</button>
+              </div>
+            </div>
+
             <div class="form-group">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                 <label class="form-label" style="margin-bottom:0;">Hunter.io API Key(s)</label>
@@ -533,6 +609,50 @@
               <div style="display:flex; gap:8px;">
                 <input type="password" id="key-github" class="form-input key-field" placeholder="token1, token2 (comma-separated)">
                 <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-github" style="padding:0 12px;">👁️</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">OpenAI API Key(s)</label>
+                <span class="key-pool-pill" id="pill-key-openai">0 keys</span>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <input type="password" id="key-openai" class="form-input key-field" placeholder="sk-..., key2 (comma-separated)">
+                <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-openai" style="padding:0 12px;">👁️</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">Google Gemini API Key(s)</label>
+                <span class="key-pool-pill" id="pill-key-gemini">0 keys</span>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <input type="password" id="key-gemini" class="form-input key-field" placeholder="AIzaSy..., key2 (comma-separated)">
+                <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-gemini" style="padding:0 12px;">👁️</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">Groq API Key(s)</label>
+                <span class="key-pool-pill" id="pill-key-groq">0 keys</span>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <input type="password" id="key-groq" class="form-input key-field" placeholder="gsk_..., key2 (comma-separated)">
+                <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-groq" style="padding:0 12px;">👁️</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">Anthropic Claude Key(s)</label>
+                <span class="key-pool-pill" id="pill-key-anthropic">0 keys</span>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <input type="password" id="key-anthropic" class="form-input key-field" placeholder="sk-ant-..., key2 (comma-separated)">
+                <button type="button" class="btn btn-secondary toggle-key-visibility" data-target="key-anthropic" style="padding:0 12px;">👁️</button>
               </div>
             </div>
           </div>
@@ -671,6 +791,22 @@
             </tr>
           </thead>
           <tbody id="matrix-tbody">
+            <tr class="matrix-row" data-category="free">
+              <td><strong>AI Web Scraper &amp; Harvester</strong></td>
+              <td>AI Public Intelligence &amp; Scraping</td>
+              <td><span class="badge-tag badge-free">100% Free &amp; Unlimited</span></td>
+              <td>Polite concurrency (8 routes)</td>
+              <td>BYOK: OpenAI / Gemini / Groq / Claude</td>
+              <td><span style="color:var(--accent-emerald)">✅ Built-in Heuristics + Multi-LLM</span></td>
+            </tr>
+            <tr class="matrix-row" data-category="finder">
+              <td><strong>Apollo.io</strong></td>
+              <td>B2B Lead Intelligence & Enrichment</td>
+              <td><span class="badge-tag badge-free">50 Email Credits / mo</span></td>
+              <td>~60 req/min</td>
+              <td>Basic: 10k ($49/mo) | Pro: 15k ($79/mo)</td>
+              <td><span style="color:var(--accent-emerald)">✅ Live Profile & Credits</span></td>
+            </tr>
             <tr class="matrix-row" data-category="finder">
               <td><strong>Hunter.io</strong></td>
               <td>Lead Finder & Verifier</td>

@@ -19,6 +19,7 @@ from api_engines import (
     DisifyEngine,
     DisposableBlocklistEngine,
     OSINTEngine,
+    ApolloEngine,
     HunterEngine,
     AbstractAPIEngine,
     ZeroBounceEngine,
@@ -31,7 +32,8 @@ from api_engines import (
     FinalScoutEngine,
     Name2EmailEngine,
     MultiFinderEngine,
-    APIQuotaEngine
+    APIQuotaEngine,
+    AIScraperEngine
 )
 from multi_verifier import run_comprehensive_scan
 
@@ -168,16 +170,17 @@ def b2b_finders_menu():
         cls()
         banner()
         print(f"{space}{p}=== B2B Email Finders & Lead Enrichment Suite ==={w}\n")
-        print(f"{space}{b}[{w}1{b}]{w} {G} All-in-One Multi-Finder Pipeline {w} (Hunter + ContactOut + SalesQL + SignalHire + FinalScout + Name2Email)")
+        print(f"{space}{b}[{w}1{b}]{w} {G} All-in-One Multi-Finder Pipeline {w} (Apollo + Hunter + ContactOut + SalesQL + SignalHire + FinalScout + Name2Email)")
         print(f"{space}{b}[{w}2{b}]{w} Name2Email / Name2Mail (34 Patterns + Parallel DNS/Disify Verifier)")
-        print(f"{space}{b}[{w}3{b}]{w} ContactOut B2B Email & Phone Finder (Name + Company / LinkedIn)")
-        print(f"{space}{b}[{w}4{b}]{w} SalesQL Lead Enrichment Finder (Name + Domain / LinkedIn)")
-        print(f"{space}{b}[{w}5{b}]{w} SignalHire Candidate Search (Name + Company)")
-        print(f"{space}{b}[{w}6{b}]{w} FinalScout Corporate Email Finder (Name + Domain / LinkedIn)")
-        print(f"{space}{b}[{w}7{b}]{w} Hunter.io Suite (Email Verifier & Name+Domain Finder)")
+        print(f"{space}{b}[{w}3{b}]{w} Apollo.io B2B Lead Match & Email Finder (Name + Domain / LinkedIn)")
+        print(f"{space}{b}[{w}4{b}]{w} ContactOut B2B Email & Phone Finder (Name + Company / LinkedIn)")
+        print(f"{space}{b}[{w}5{b}]{w} SalesQL Lead Enrichment Finder (Name + Domain / LinkedIn)")
+        print(f"{space}{b}[{w}6{b}]{w} SignalHire Candidate Search (Name + Company)")
+        print(f"{space}{b}[{w}7{b}]{w} FinalScout Corporate Email Finder (Name + Domain / LinkedIn)")
+        print(f"{space}{b}[{w}8{b}]{w} Hunter.io Suite (Email Verifier & Name+Domain Finder)")
         print(f"\n{space}{b}[{w}0{b}]{w} Back to Main Menu\n")
         
-        choice = input(f"{space}{b}[{w}?{b}]{w} Select option [0-7]: {b}").strip()
+        choice = input(f"{space}{b}[{w}?{b}]{w} Select option [0-8]: {b}").strip()
         
         if choice == "0" or not choice:
             break
@@ -252,8 +255,46 @@ def b2b_finders_menu():
                 print(f"\n{space}{g}[+]{w} Saved all {len(res.get('valid_candidates', []))} candidate(s) to: {y}name2mail_candidates.txt{w}")
             pause()
             
-        # 3. ContactOut
+        # 3. Apollo.io B2B Lead Match & Email Finder
         elif choice in ["3", "03"]:
+            cls()
+            banner()
+            print(f"{space}{p}--- Apollo.io B2B Lead Match & Email Finder ---{w}\n")
+            sub = input(f"{space}{b}[{w}?{b}]{w} Search by (1) Name + Domain or (2) LinkedIn URL? [1/2]: {b}").strip()
+            print(w + lines)
+            if sub == "2":
+                li_url = input(f"{space}{b}[{w}?{b}]{w} Enter LinkedIn Profile URL: {b}").strip()
+                res = ApolloEngine.find_by_linkedin(li_url)
+            else:
+                first = input(f"{space}{b}[{w}?{b}]{w} First Name: {b}").strip()
+                last = input(f"{space}{b}[{w}?{b}]{w} Last Name: {b}").strip()
+                domain = input(f"{space}{b}[{w}?{b}]{w} Target Domain (e.g. stripe.com): {b}").strip()
+                company = input(f"{space}{b}[{w}?{b}]{w} Company Name (optional, press Enter to skip): {b}").strip()
+                res = ApolloEngine.find_email(domain, first, last, company=company)
+                
+            if res.get("success"):
+                print(f"{space}{g}[+]{w} Primary Email  : {G} {res.get('primary_email', 'N/A')} {w}")
+                if res.get("personal_emails"):
+                    print(f"{space}{g}[+]{w} Personal Emails: {', '.join(res.get('personal_emails', []))}")
+                if res.get("phone_numbers"):
+                    print(f"{space}{g}[+]{w} Phone Numbers  : {', '.join(res.get('phone_numbers', []))}")
+                print(f"{space}{g}[+]{w} Status / Score : {res.get('status', 'verified')} (Confidence: {res.get('score', 95)}%)")
+                print(f"{space}{g}[+]{w} Job Title      : {res.get('title', 'N/A')}")
+                print(f"{space}{g}[+]{w} Company        : {res.get('company', 'N/A')}")
+                if res.get("linkedin_url"):
+                    print(f"{space}{g}[+]{w} LinkedIn URL   : {res.get('linkedin_url')}")
+                if res.get("seniority"):
+                    print(f"{space}{g}[+]{w} Seniority      : {res.get('seniority')}")
+                loc_parts = [p for p in [res.get('city'), res.get('state'), res.get('country')] if p]
+                if loc_parts:
+                    print(f"{space}{g}[+]{w} Location       : {', '.join(loc_parts)}")
+            else:
+                print(f"{space}{r}[!]{w} {res.get('error')}")
+                print(f"{space}{y}[*]{w} Configure your Apollo.io API key in Option [9]")
+            pause()
+
+        # 4. ContactOut
+        elif choice in ["4", "04"]:
             cls()
             banner()
             print(f"{space}{p}--- ContactOut B2B Email & Phone Finder ---{w}\n")
@@ -281,8 +322,8 @@ def b2b_finders_menu():
                 print(f"{space}{y}[*]{w} Configure your ContactOut API key in Option [9]")
             pause()
             
-        # 4. SalesQL
-        elif choice in ["4", "04"]:
+        # 5. SalesQL
+        elif choice in ["5", "05"]:
             cls()
             banner()
             print(f"{space}{p}--- SalesQL Lead Enrichment Finder ---{w}\n")
@@ -308,8 +349,8 @@ def b2b_finders_menu():
                 print(f"{space}{y}[*]{w} Configure your SalesQL API key in Option [9]")
             pause()
             
-        # 5. SignalHire
-        elif choice in ["5", "05"]:
+        # 6. SignalHire
+        elif choice in ["6", "06"]:
             cls()
             banner()
             print(f"{space}{p}--- SignalHire Candidate Search ---{w}\n")
@@ -328,8 +369,8 @@ def b2b_finders_menu():
                 print(f"{space}{y}[*]{w} Configure your SignalHire API key in Option [9]")
             pause()
             
-        # 6. FinalScout
-        elif choice in ["6", "06"]:
+        # 7. FinalScout
+        elif choice in ["7", "07"]:
             cls()
             banner()
             print(f"{space}{p}--- FinalScout Corporate Email Finder ---{w}\n")
@@ -354,8 +395,8 @@ def b2b_finders_menu():
                 print(f"{space}{y}[*]{w} Configure your FinalScout API key in Option [9]")
             pause()
             
-        # 7. Hunter.io Suite
-        elif choice in ["7", "07"]:
+        # 8. Hunter.io Suite
+        elif choice in ["8", "08"]:
             cls()
             banner()
             print(f"{space}{p}--- Hunter.io Suite ---{w}\n")
@@ -495,7 +536,175 @@ def osint_menu():
     pause()
 
 # -------------------------------------------------------------
-# 8. Permutation Name Finder (Generates & Saves to result.txt)
+# 8. AI-Powered Web Scraper & Contact Harvester
+# -------------------------------------------------------------
+def ai_scraper_menu():
+    while True:
+        cls()
+        banner()
+        print(f"{space}{p}=== AI Web Scraper & Corporate Contact Harvester ==={w}\n")
+        print(f"{space}{d}Automatically crawls target websites, de-cloaks obfuscated emails, extracts{w}")
+        print(f"{space}{d}phone numbers, maps social media profiles, and structures leadership with AI.{w}\n")
+
+        target = input(f"{space}{b}[{w}?{b}]{w} Enter Website URL or Domain (e.g. stripe.com) [0=Back]: {b}").strip()
+        if not target or target == "0":
+            break
+
+        print(f"\n{space}{b}[*]{w} Select Crawling Depth & Strategy:")
+        print(f"{space}  [1] Smart Route Discovery (Home, About, Team, Contact, Legal/Impressum) [Recommended]")
+        print(f"{space}  [2] Deep Recursive Crawl (Discovers up to 15 internal contact pages)")
+        print(f"{space}  [3] Single Landing Page Only")
+        depth_ch = input(f"{space}{b}[{w}?{b}]{w} Choice [1-3, default=1]: {b}").strip()
+        max_pages = 15 if depth_ch == "2" else (1 if depth_ch == "3" else 8)
+
+        print(f"\n{space}{b}[*]{w} Select AI Intelligence Engine:")
+        print(f"{space}  [1] Auto-Detect Best Engine (Uses configured OpenAI/Gemini/Groq/Anthropic, or Local Heuristic)")
+        print(f"{space}  [2] Local Smart Heuristic NLP (Built-in, 100% Free, Instant)")
+        print(f"{space}  [3] OpenAI (GPT-4o-mini)")
+        print(f"{space}  [4] Google Gemini (1.5 Flash)")
+        print(f"{space}  [5] Groq Llama-3 (High-Speed)")
+        print(f"{space}  [6] Anthropic Claude (3.5 Haiku)")
+        ai_ch = input(f"{space}{b}[{w}?{b}]{w} Choice [1-6, default=1]: {b}").strip()
+        ai_provider_map = {"1": "auto", "2": "heuristic", "3": "openai", "4": "gemini", "5": "groq", "6": "anthropic"}
+        ai_mode = ai_provider_map.get(ai_ch, "auto")
+
+        print(w + lines)
+        print(f"{space}{b}[*]{w} Launching AI Web Scraper on: {y}{target}{w}")
+        print(f"{space}{b}[*]{w} Crawling key discovery routes (Max: {max_pages} pages)...")
+
+        t0 = time.time()
+        dossier = AIScraperEngine.harvest(target, max_pages=max_pages, ai_provider=ai_mode)
+        dur = round(time.time() - t0, 2)
+
+        if not dossier.get("success"):
+            print(f"\n{space}{r}[!] Harvester Failed:{w} {dossier.get('error')}")
+            pause()
+            continue
+
+        base_dom = dossier.get("base_domain", target)
+        print(f"\n{space}{G} HARVEST COMPLETE {w} ({dur}s | {dossier.get('pages_analyzed', 1)} pages analyzed | Engine: {y}{dossier.get('ai_engine')}{w})")
+        print(w + lines)
+
+        # 1. Company Overview
+        print(f"{space}{p}[1] Company Profile & Intelligence:{w}")
+        print(f"{space}    - Entity Name   : {w}{dossier.get('company_name', 'N/A')}")
+        print(f"{space}    - Target Domain : {w}{base_dom}")
+        print(f"{space}    - Summary       : {d}{dossier.get('summary', 'N/A')}{w}")
+        if dossier.get("industry") and dossier.get("industry") != "Unknown":
+            print(f"{space}    - Inferred Ind. : {w}{dossier.get('industry')}")
+        if dossier.get("headquarters"):
+            for hq in dossier["headquarters"]:
+                print(f"{space}    - Headquarters  : {y}{hq}{w}")
+
+        # 2. Extracted Emails
+        emails = dossier.get("emails", [])
+        print(f"\n{space}{p}[2] Extracted Emails ({len(emails)} Found):{w}")
+        if emails:
+            for em in emails:
+                cat = em["category"]
+                color_tag = g if "Executive" in cat else (b if "Role" in cat else d)
+                badge = "[EXEC]" if "Executive" in cat else ("[ROLE]" if "Role" in cat else "[EXT]")
+                print(f"{space}    {color_tag}{badge:<7}{w} {em['email']:<32} {d}({em['role_label']}) - src: {em['source']}{w}")
+        else:
+            print(f"{space}    {d}No direct public emails exposed on crawled pages.{w}")
+
+        # 3. Extracted Phone Numbers
+        phones = dossier.get("phones", [])
+        print(f"\n{space}{p}[3] Extracted Phone Numbers ({len(phones)} Found):{w}")
+        if phones:
+            for ph in phones:
+                print(f"{space}    {g}[TEL]{w} {ph['number']:<22} {d}({ph.get('label', 'Office')}){w}")
+        else:
+            print(f"{space}    {d}No phone numbers detected.{w}")
+
+        # 4. Social Accounts
+        socials = dossier.get("social_accounts", {})
+        total_socials = sum(len(v) for v in socials.values())
+        print(f"\n{space}{p}[4] Discovered Social Accounts & Profiles ({total_socials} Found):{w}")
+        if socials.get("linkedin_company"):
+            for li in socials["linkedin_company"]:
+                print(f"{space}    {b}[LinkedIn Company]{w} {li['url']}")
+        if socials.get("linkedin_personal"):
+            for li in socials["linkedin_personal"]:
+                print(f"{space}    {g}[LinkedIn Profile]{w} {li['url']} {d}(@{li['handle']}){w}")
+        if socials.get("twitter_x"):
+            for tw in socials["twitter_x"]:
+                print(f"{space}    {b}[Twitter / X]{w}     {tw['handle']} -> {tw['url']}")
+        if socials.get("github"):
+            for gh in socials["github"]:
+                print(f"{space}    {w}[GitHub]{w}          @{gh['handle']} -> {gh['url']}")
+        if socials.get("youtube"):
+            for yt in socials["youtube"]:
+                print(f"{space}    {r}[YouTube]{w}         {yt['url']}")
+        if socials.get("facebook"):
+            for fb in socials["facebook"]:
+                print(f"{space}    {b}[Facebook]{w}        {fb['url']}")
+        if socials.get("instagram"):
+            for ig in socials["instagram"]:
+                print(f"{space}    {p}[Instagram]{w}       {ig['handle']} -> {ig['url']}")
+        if socials.get("discord"):
+            for dc in socials["discord"]:
+                print(f"{space}    {b}[Discord]{w}         {dc['url']}")
+        if socials.get("telegram"):
+            for tg in socials["telegram"]:
+                print(f"{space}    {b}[Telegram]{w}        {tg['handle']} -> {tg['url']}")
+        if total_socials == 0:
+            print(f"{space}    {d}No public social profiles linked in page markup.{w}")
+
+        # 5. Detected Team / Leadership
+        team = dossier.get("team_leadership", [])
+        if team:
+            print(f"\n{space}{p}[5] Detected Leadership & Team Members ({len(team)} Identified):{w}")
+            for tm in team:
+                em_tag = f"<{tm['email']}>" if tm.get("email") else "(No direct email)"
+                li_tag = f"| LI: {tm['linkedin']}" if tm.get("linkedin") else ""
+                print(f"{space}    {g}• {tm['name']}{w} - {d}{tm['title']}{w} {em_tag} {li_tag}")
+
+        # Actions Menu
+        print(f"\n{space}{w}--- Actions ---")
+        print(f"{space}{b}[{w}1{b}]{w} Export Complete Dossier to contacts_{base_dom}.json")
+        print(f"{space}{b}[{w}2{b}]{w} Export Discovered Emails to contacts_{base_dom}.txt")
+        print(f"{space}{b}[{w}3{b}]{w} Handoff an Email to Comprehensive Deliverability Scan")
+        print(f"{space}{b}[{w}0{b}]{w} Back / New Scan")
+        act = input(f"\n{space}{b}[{w}?{b}]{w} Select Action [0-3]: {b}").strip()
+
+        if act == "1":
+            fname = f"contacts_{base_dom}.json"
+            try:
+                with open(fname, "w", encoding="utf-8") as f:
+                    json.dump(dossier, f, indent=4)
+                print(f"{space}{g}[✓] Exported full JSON intelligence dossier to: {fname}{w}")
+            except Exception as e:
+                print(f"{space}{r}[!] Failed to export JSON: {e}{w}")
+            pause()
+        elif act == "2":
+            fname = f"contacts_{base_dom}.txt"
+            try:
+                with open(fname, "w", encoding="utf-8") as f:
+                    for em in emails:
+                        f.write(f"{em['email']}\n")
+                print(f"{space}{g}[✓] Exported {len(emails)} emails to: {fname}{w}")
+            except Exception as e:
+                print(f"{space}{r}[!] Failed to export TXT: {e}{w}")
+            pause()
+        elif act == "3":
+            if emails:
+                print(f"\n{space}Select email index to scan [1-{len(emails)}]:")
+                for i, em in enumerate(emails, 1):
+                    print(f"{space}  [{i}] {em['email']}")
+                pick = input(f"{space}{b}[{w}?{b}]{w} Index: {b}").strip()
+                if pick.isdigit() and 1 <= int(pick) <= len(emails):
+                    chosen = emails[int(pick) - 1]["email"]
+                    cls()
+                    banner()
+                    run_comprehensive_scan(chosen)
+                    pause()
+            else:
+                print(f"{space}{y}[!] No emails available for handoff.{w}")
+                pause()
+
+# -------------------------------------------------------------
+# 9. Permutation Name Finder (Generates & Saves to result.txt)
 # -------------------------------------------------------------
 def name_finder_menu():
     cls()
@@ -567,7 +776,10 @@ def live_quota_inspector_menu():
             k_act = q.get("active_keys", 1)
             key_tag = f" {d}({k_act}/{k_count} keys active){w}" if k_count > 1 else ""
 
-            if service_name == "Hunter.io":
+            if service_name == "Apollo.io":
+                print(f"{space}{g}[+] {service_name:<18}{w} : Plan: {y}{q.get('plan_name', 'Standard')}{w} | Account: {q.get('account_email', 'N/A')}{key_tag}")
+                print(f"{space}    - Credits Remaining  : {G}{q.get('credits_remaining', 50)}{w} / {q.get('credits_total', 50)} credits/month")
+            elif service_name == "Hunter.io":
                 print(f"{space}{g}[+] {service_name:<18}{w} : Plan: {y}{q.get('plan_name')}{w} | Account: {q.get('account_email')}{key_tag}")
                 print(f"{space}    - Searches Left      : {g}{q.get('searches_remaining')}{w} / {q.get('searches_available')} (Used: {q.get('searches_used')})")
                 print(f"{space}    - Verifications Left : {g}{q.get('verifications_remaining')}{w} / {q.get('verifications_available')} (Used: {q.get('verifications_used')})")
@@ -647,10 +859,11 @@ def config_keys_menu():
         cls()
         banner()
         print(f"{space}{p}=== API Keys, Usage Quotas & Multi-Key Failover Manager ==={w}\n")
-        print(f"{space}{d}Select an engine [01-11] to add, update, or clear its API keys.{w}")
+        print(f"{space}{d}Select an engine [01-16] to add, update, or clear its API keys.{w}")
         print(f"{space}{d}Tip: Enter multiple keys separated by commas for automatic failover.{w}\n")
         
         services = [
+            ("Apollo.io Keys", "apollo_api_keys", "https://apollo.io", APIQuotaEngine.check_apollo_quota),
             ("Hunter.io Keys", "hunter_api_keys", "https://hunter.io", APIQuotaEngine.check_hunter_quota),
             ("ContactOut Keys", "contactout_api_keys", "https://contactout.com", APIQuotaEngine.check_contactout_quota),
             ("SalesQL Keys", "salesql_api_keys", "https://salesql.com", APIQuotaEngine.check_salesql_quota),
@@ -661,7 +874,11 @@ def config_keys_menu():
             ("Debounce Keys", "debounce_api_keys", "https://debounce.io", APIQuotaEngine.check_debounce_quota),
             ("Mailboxlayer Keys", "mailboxlayer_api_keys", "https://mailboxlayer.com", None),
             ("EmailRep Keys", "emailrep_api_keys", "https://emailrep.io", None),
-            ("GitHub Tokens", "github_tokens", "https://github.com/settings/tokens", APIQuotaEngine.check_github_quota)
+            ("GitHub Tokens", "github_tokens", "https://github.com/settings/tokens", APIQuotaEngine.check_github_quota),
+            ("OpenAI API Keys", "openai_api_keys", "https://platform.openai.com", None),
+            ("Gemini API Keys", "gemini_api_keys", "https://aistudio.google.com", None),
+            ("Groq API Keys", "groq_api_keys", "https://console.groq.com", None),
+            ("Anthropic Keys", "anthropic_api_keys", "https://console.anthropic.com", None)
         ]
 
         for i, (name, key_field, info, _) in enumerate(services, 1):
@@ -674,7 +891,7 @@ def config_keys_menu():
         print(f"\n{space}{G} [L] Check Real-Time API Quotas & Remaining Credit Balances {w}")
         print(f"{space}{B} [T] View Free Tier vs Premium Tier Quota & Usage Limits Matrix {w}")
         print(f"\n{space}{b}[{w}0{b}]{w} Back to Main Menu\n")
-        ch = input(f"{space}{b}[{w}?{b}]{w} Select option to manage [1-11, L, T, 0]: {b}").strip().upper()
+        ch = input(f"{space}{b}[{w}?{b}]{w} Select option to manage [1-16, L, T, 0]: {b}").strip().upper()
         
         if ch == "0" or not ch:
             break
@@ -745,17 +962,18 @@ def main_menu():
         print(f"{space}{b}[{w}2{b}]{w} Check Username across 70+ Email Domains")
         print(f"{space} {w}|")
         print(f"{space}{b}[{w}3{b}]{w} {G} Comprehensive Multi-Engine Email Scan {w} (All-in-One Deliverability)")
-        print(f"{space}{b}[{w}4{b}]{w} {B} B2B Email Finders & Lead Enrichment Suite {w} (ContactOut, SalesQL, SignalHire, FinalScout, Name2Mail, Hunter)")
+        print(f"{space}{b}[{w}4{b}]{w} {B} B2B Email Finders & Lead Enrichment Suite {w} (Apollo, ContactOut, SalesQL, SignalHire, FinalScout, Name2Mail, Hunter)")
         print(f"{space} {w}|")
         print(f"{space}{b}[{w}5{b}]{w} AbstractAPI Email Verifier")
         print(f"{space}{b}[{w}6{b}]{w} Commercial Verifiers (ZeroBounce / Debounce / Mailboxlayer)")
         print(f"{space}{b}[{w}7{b}]{w} OSINT & Identity Profiler (Gravatar + GitHub + EmailRep)")
-        print(f"{space}{b}[{w}8{b}]{w} Name-to-Email Permutation Generator (Save to result.txt)")
+        print(f"{space}{b}[{w}8{b}]{w} {G} AI Web Scraper & Contact Harvester {w} (Emails, Phones, Socials & Team)")
+        print(f"{space}{b}[{w}9{b}]{w} Name-to-Email Permutation Generator (Save to result.txt)")
         print(f"{space} {w}|")
-        print(f"{space}{b}[{w}9{b}]{w} API Keys, Usage Quotas & Tier Limits Manager")
+        print(f"{space}{b}[{w}10{b}]{w} API Keys, Usage Quotas & Tier Limits Manager")
         print(f"{space}{b}[{w}0{b}]{w} Exit Mailerone\n")
 
-        choice = input(f"{space}{b}[{w}?{b}]{w} Select an option [0-9]: {b}").strip()
+        choice = input(f"{space}{b}[{w}?{b}]{w} Select an option [0-10]: {b}").strip()
 
         if choice in ["1", "01"]:
             checkdomain()
@@ -772,8 +990,10 @@ def main_menu():
         elif choice in ["7", "07"]:
             osint_menu()
         elif choice in ["8", "08"]:
-            name_finder_menu()
+            ai_scraper_menu()
         elif choice in ["9", "09"]:
+            name_finder_menu()
+        elif choice in ["10"]:
             config_keys_menu()
         elif choice == "0":
             print(f"\n{space}{b}[*]{w} Goodbye!\n")

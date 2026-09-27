@@ -4,6 +4,9 @@ import os
 CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
 
 CANONICAL_KEY_MAP = {
+    "apollo": "apollo_api_keys",
+    "apollo_api_key": "apollo_api_keys",
+    "apollo_api_keys": "apollo_api_keys",
     "hunter": "hunter_api_keys",
     "hunter_api_key": "hunter_api_keys",
     "hunter_api_keys": "hunter_api_keys",
@@ -37,9 +40,22 @@ CANONICAL_KEY_MAP = {
     "github": "github_tokens",
     "github_token": "github_tokens",
     "github_tokens": "github_tokens",
+    "openai": "openai_api_keys",
+    "openai_api_key": "openai_api_keys",
+    "openai_api_keys": "openai_api_keys",
+    "gemini": "gemini_api_keys",
+    "gemini_api_key": "gemini_api_keys",
+    "gemini_api_keys": "gemini_api_keys",
+    "groq": "groq_api_keys",
+    "groq_api_key": "groq_api_keys",
+    "groq_api_keys": "groq_api_keys",
+    "anthropic": "anthropic_api_keys",
+    "anthropic_api_key": "anthropic_api_keys",
+    "anthropic_api_keys": "anthropic_api_keys",
 }
 
 DEFAULT_CONFIG = {
+    "apollo_api_keys": [],
     "hunter_api_keys": [],
     "abstract_api_keys": [],
     "zerobounce_api_keys": [],
@@ -50,7 +66,11 @@ DEFAULT_CONFIG = {
     "salesql_api_keys": [],
     "signalhire_api_keys": [],
     "finalscout_api_keys": [],
-    "github_tokens": []
+    "github_tokens": [],
+    "openai_api_keys": [],
+    "gemini_api_keys": [],
+    "groq_api_keys": [],
+    "anthropic_api_keys": []
 }
 
 def normalize_keys(raw_val):

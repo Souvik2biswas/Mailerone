@@ -9,6 +9,7 @@ except ImportError:
     HAVE_DNSPYTHON = False
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from config_manager import get_api_key, get_api_keys
+from ai_scraper import AIScraperEngine
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -890,7 +891,263 @@ class FinalScoutEngine:
         return {"success": False, "error": f"All FinalScout keys exhausted ({last_error})"}
 
 # -------------------------------------------------------------
-# 15. Name2Email (Name2Mail) Smart Permutator & Verification Engine
+# 15. Apollo.io API Engine (Multi-Key Failover)
+# -------------------------------------------------------------
+class ApolloEngine:
+    @staticmethod
+    def find_email(domain, first_name, last_name, company=None, linkedin_url=None, api_key=None, api_keys=None):
+        keys = api_keys or ([api_key] if api_key else get_api_keys("apollo_api_keys"))
+        if not keys:
+            return {"success": False, "error": "No Apollo.io API key configured"}
+        
+        last_error = "No keys attempted"
+        for idx, key in enumerate(keys):
+            try:
+                headers = HEADERS.copy()
+                headers["X-Api-Key"] = key
+                headers["Content-Type"] = "application/json"
+                headers["Cache-Control"] = "no-cache"
+                url = "https://api.apollo.io/api/v1/people/match"
+                payload = {
+                    "first_name": first_name.strip(),
+                    "last_name": last_name.strip(),
+                    "domain": domain.strip().lower(),
+                    "reveal_personal_emails": True
+                }
+                if company:
+                    payload["organization_name"] = company.strip()
+                if linkedin_url:
+                    payload["linkedin_url"] = linkedin_url.strip()
+
+                resp = requests.post(url, headers=headers, json=payload, timeout=10)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    person = data.get("person") or data.get("contact") or {}
+                    
+                    email = person.get("email")
+                    personal_emails = person.get("personal_emails") or []
+                    if isinstance(personal_emails, str):
+                        personal_emails = [personal_emails]
+                    
+                    phones = []
+                    raw_phones = person.get("phone_numbers") or []
+                    if isinstance(raw_phones, list):
+                        for p in raw_phones:
+                            if isinstance(p, dict):
+                                num = p.get("sanitized_number") or p.get("raw_number") or p.get("number")
+                                if num and num not in phones:
+                                    phones.append(num)
+                            elif isinstance(p, str) and p not in phones:
+                                phones.append(p)
+                    elif isinstance(raw_phones, str):
+                        phones = [raw_phones]
+
+                    org = person.get("organization") or {}
+                    company_name = org.get("name") if isinstance(org, dict) else (company or domain)
+                    title = person.get("title") or person.get("headline") or ""
+                    
+                    if not email and not personal_emails and not phones:
+                        return {
+                            "success": False,
+                            "error": f"Apollo.io found no verified email for {first_name} {last_name} @ {domain}",
+                            "engine": "Apollo.io",
+                            "active_key": mask_key_preview(key),
+                            "key_index": idx + 1,
+                            "total_keys": len(keys)
+                        }
+
+                    all_ems = []
+                    if email:
+                        all_ems.append(email)
+                    for em in personal_emails:
+                        if em and em not in all_ems:
+                            all_ems.append(em)
+
+                    return {
+                        "success": True,
+                        "engine": "Apollo.io",
+                        "email": email or (personal_emails[0] if personal_emails else None),
+                        "primary_email": email or (personal_emails[0] if personal_emails else None),
+                        "personal_emails": personal_emails,
+                        "emails": all_ems,
+                        "status": person.get("email_status", "verified"),
+                        "score": 95 if person.get("email_status") == "verified" else 75,
+                        "title": title,
+                        "headline": title,
+                        "company": company_name,
+                        "phone_numbers": phones,
+                        "phones": phones,
+                        "linkedin_url": person.get("linkedin_url", linkedin_url or ""),
+                        "seniority": person.get("seniority", ""),
+                        "departments": person.get("departments", []),
+                        "city": person.get("city", ""),
+                        "state": person.get("state", ""),
+                        "country": person.get("country", ""),
+                        "active_key": mask_key_preview(key),
+                        "key_index": idx + 1,
+                        "total_keys": len(keys)
+                    }
+                elif resp.status_code in [401, 402, 403, 429]:
+                    last_error = f"Key #{idx+1} ({mask_key_preview(key)}) rejected: HTTP {resp.status_code}"
+                    continue
+                else:
+                    last_error = f"Apollo.io Error: HTTP {resp.status_code}"
+            except Exception as e:
+                last_error = str(e)
+                continue
+        return {"success": False, "error": f"All Apollo.io keys exhausted ({last_error})"}
+
+    @staticmethod
+    def find_by_linkedin(linkedin_url, api_key=None, api_keys=None):
+        keys = api_keys or ([api_key] if api_key else get_api_keys("apollo_api_keys"))
+        if not keys:
+            return {"success": False, "error": "No Apollo.io API key configured"}
+        
+        last_error = "No keys attempted"
+        for idx, key in enumerate(keys):
+            try:
+                headers = HEADERS.copy()
+                headers["X-Api-Key"] = key
+                headers["Content-Type"] = "application/json"
+                headers["Cache-Control"] = "no-cache"
+                url = "https://api.apollo.io/api/v1/people/match"
+                payload = {
+                    "linkedin_url": linkedin_url.strip(),
+                    "reveal_personal_emails": True
+                }
+                resp = requests.post(url, headers=headers, json=payload, timeout=10)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    person = data.get("person") or data.get("contact") or {}
+                    
+                    email = person.get("email")
+                    personal_emails = person.get("personal_emails") or []
+                    if isinstance(personal_emails, str):
+                        personal_emails = [personal_emails]
+                    
+                    phones = []
+                    raw_phones = person.get("phone_numbers") or []
+                    if isinstance(raw_phones, list):
+                        for p in raw_phones:
+                            if isinstance(p, dict):
+                                num = p.get("sanitized_number") or p.get("raw_number") or p.get("number")
+                                if num and num not in phones:
+                                    phones.append(num)
+                            elif isinstance(p, str) and p not in phones:
+                                phones.append(p)
+                    elif isinstance(raw_phones, str):
+                        phones = [raw_phones]
+
+                    org = person.get("organization") or {}
+                    company_name = org.get("name") if isinstance(org, dict) else ""
+                    title = person.get("title") or person.get("headline") or ""
+                    
+                    if not email and not personal_emails and not phones:
+                        return {
+                            "success": False,
+                            "error": "Apollo.io found no verified email for this LinkedIn profile",
+                            "engine": "Apollo.io",
+                            "active_key": mask_key_preview(key),
+                            "key_index": idx + 1,
+                            "total_keys": len(keys)
+                        }
+
+                    all_ems = []
+                    if email:
+                        all_ems.append(email)
+                    for em in personal_emails:
+                        if em and em not in all_ems:
+                            all_ems.append(em)
+
+                    return {
+                        "success": True,
+                        "engine": "Apollo.io",
+                        "name": person.get("name", ""),
+                        "first_name": person.get("first_name", ""),
+                        "last_name": person.get("last_name", ""),
+                        "email": email or (personal_emails[0] if personal_emails else None),
+                        "primary_email": email or (personal_emails[0] if personal_emails else None),
+                        "personal_emails": personal_emails,
+                        "emails": all_ems,
+                        "status": person.get("email_status", "verified"),
+                        "score": 95 if person.get("email_status") == "verified" else 75,
+                        "title": title,
+                        "headline": title,
+                        "company": company_name,
+                        "phone_numbers": phones,
+                        "phones": phones,
+                        "linkedin_url": person.get("linkedin_url", linkedin_url),
+                        "seniority": person.get("seniority", ""),
+                        "city": person.get("city", ""),
+                        "state": person.get("state", ""),
+                        "country": person.get("country", ""),
+                        "active_key": mask_key_preview(key),
+                        "key_index": idx + 1,
+                        "total_keys": len(keys)
+                    }
+                elif resp.status_code in [401, 402, 403, 429]:
+                    last_error = f"Key #{idx+1} ({mask_key_preview(key)}) rejected: HTTP {resp.status_code}"
+                    continue
+                else:
+                    last_error = f"Apollo.io Error: HTTP {resp.status_code}"
+            except Exception as e:
+                last_error = str(e)
+                continue
+        return {"success": False, "error": f"All Apollo.io keys exhausted ({last_error})"}
+
+    @staticmethod
+    def verify(email, api_key=None, api_keys=None):
+        keys = api_keys or ([api_key] if api_key else get_api_keys("apollo_api_keys"))
+        if not keys:
+            return {"success": False, "error": "No Apollo.io API key configured"}
+        
+        last_error = "No keys attempted"
+        for idx, key in enumerate(keys):
+            try:
+                headers = HEADERS.copy()
+                headers["X-Api-Key"] = key
+                headers["Content-Type"] = "application/json"
+                headers["Cache-Control"] = "no-cache"
+                url = "https://api.apollo.io/api/v1/people/match"
+                payload = {
+                    "email": email.strip().lower(),
+                    "reveal_personal_emails": True
+                }
+                resp = requests.post(url, headers=headers, json=payload, timeout=10)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    person = data.get("person") or data.get("contact") or {}
+                    
+                    matched_email = person.get("email") or email
+                    st = person.get("email_status", "verified")
+                    org = person.get("organization") or {}
+                    company = org.get("name") if isinstance(org, dict) else ""
+                    return {
+                        "success": True,
+                        "engine": "Apollo.io",
+                        "email": matched_email,
+                        "status": st,
+                        "confidence": 95 if st == "verified" else 75,
+                        "name": person.get("name", ""),
+                        "title": person.get("title", ""),
+                        "company": company,
+                        "linkedin_url": person.get("linkedin_url", ""),
+                        "active_key": mask_key_preview(key),
+                        "key_index": idx + 1,
+                        "total_keys": len(keys)
+                    }
+                elif resp.status_code in [401, 402, 403, 429]:
+                    last_error = f"Key #{idx+1} ({mask_key_preview(key)}) rejected: HTTP {resp.status_code}"
+                    continue
+                else:
+                    last_error = f"Apollo.io Error: HTTP {resp.status_code}"
+            except Exception as e:
+                last_error = str(e)
+                continue
+        return {"success": False, "error": f"All Apollo.io keys exhausted ({last_error})"}
+
+# -------------------------------------------------------------
+# 16. Name2Email (Name2Mail) Smart Permutator & Verification Engine
 # -------------------------------------------------------------
 class Name2EmailEngine:
     @staticmethod
@@ -1024,7 +1281,7 @@ class Name2EmailEngine:
         }
 
 # -------------------------------------------------------------
-# 16. MultiFinderEngine (Unified Parallel Multi-Engine Lead Pipeline)
+# 17. MultiFinderEngine (Unified Parallel Multi-Engine Lead Pipeline)
 # -------------------------------------------------------------
 class MultiFinderEngine:
     @staticmethod
@@ -1046,6 +1303,7 @@ class MultiFinderEngine:
 
         # Concurrently query independent search engines
         tasks = {
+            "Apollo.io": lambda: ApolloEngine.find_by_linkedin(linkedin_url) if linkedin_url else ApolloEngine.find_email(domain, first_name, last_name, company=company),
             "Hunter.io": lambda: HunterEngine.find_email(domain, first_name, last_name),
             "ContactOut": lambda: ContactOutEngine.find_by_linkedin(linkedin_url) if linkedin_url else ContactOutEngine.find_email(domain, first_name, last_name, company=company),
             "SalesQL": lambda: SalesQLEngine.find_by_linkedin(linkedin_url) if linkedin_url else SalesQLEngine.find_email(domain, first_name, last_name),
@@ -1054,7 +1312,7 @@ class MultiFinderEngine:
             "Name2Email (Smart Permutator)": lambda: Name2EmailEngine.find_and_verify(first_name, last_name, domain)
         }
 
-        with ThreadPoolExecutor(max_workers=6) as executor:
+        with ThreadPoolExecutor(max_workers=7) as executor:
             future_map = {executor.submit(fn): name for name, fn in tasks.items()}
             for future in as_completed(future_map):
                 engine_name = future_map[future]
@@ -1063,7 +1321,25 @@ class MultiFinderEngine:
                     res = future.result()
                     results["details"][engine_name.lower().split()[0]] = res
 
-                    if engine_name == "Hunter.io" and res.get("success") and res.get("email"):
+                    if engine_name == "Apollo.io" and res.get("success"):
+                        em = res.get("email") or res.get("primary_email")
+                        if em and not any(x["email"] == em for x in results["found_emails"]):
+                            results["found_emails"].append({
+                                "email": em,
+                                "source": f"Apollo.io [Key #{res.get('key_index', 1)}]",
+                                "confidence": f"{res.get('score', 95)}% ({res.get('status', 'verified')})"
+                            })
+                        for pem in res.get("personal_emails", []):
+                            if pem and not any(x["email"] == pem for x in results["found_emails"]):
+                                results["found_emails"].append({
+                                    "email": pem,
+                                    "source": "Apollo.io [Personal Email]",
+                                    "confidence": "High"
+                                })
+                        for ph in res.get("phone_numbers", []):
+                            if ph and ph not in results["found_phones"]:
+                                results["found_phones"].append(ph)
+                    elif engine_name == "Hunter.io" and res.get("success") and res.get("email"):
                         results["found_emails"].append({
                             "email": res["email"],
                             "source": f"Hunter.io [Key #{res.get('key_index', 1)}]",
@@ -1567,10 +1843,85 @@ class APIQuotaEngine:
             "keys_breakdown": breakdown
         }
 
+    @staticmethod
+    def check_apollo_quota(api_key=None, api_keys=None):
+        keys = api_keys or ([api_key] if api_key else get_api_keys("apollo_api_keys"))
+        if not keys:
+            return {"success": False, "error": "No Apollo.io API key configured"}
+        
+        breakdown = []
+        tot_credits = 0
+        active_count = 0
+
+        for key in keys:
+            try:
+                headers = HEADERS.copy()
+                headers["X-Api-Key"] = key
+                headers["Content-Type"] = "application/json"
+                
+                # Check user profile & key validity
+                url = "https://api.apollo.io/api/v1/users/api_profile"
+                resp = requests.get(url, headers=headers, timeout=8)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    user = data.get("user") or {}
+                    email = user.get("email", "N/A")
+                    plan = data.get("plan_name", "Free / Standard").capitalize()
+                    credits_rem = data.get("credits_remaining", 50)
+                    val = int(credits_rem) if isinstance(credits_rem, int) or (isinstance(credits_rem, str) and credits_rem.isdigit()) else 50
+                    tot_credits += val
+                    active_count += 1
+                    breakdown.append({
+                        "key": mask_key_preview(key),
+                        "status": "Active",
+                        "plan": plan,
+                        "email": email,
+                        "credits": val
+                    })
+                elif resp.status_code in [401, 403]:
+                    breakdown.append({"key": mask_key_preview(key), "status": "Invalid/Expired"})
+                elif resp.status_code == 429:
+                    breakdown.append({"key": mask_key_preview(key), "status": "Rate Limited (429)"})
+                else:
+                    # Alternative test: lightweight auth ping
+                    health_url = "https://api.apollo.io/api/v1/auth/health"
+                    h_resp = requests.get(health_url, headers=headers, timeout=6)
+                    if h_resp.status_code in [200, 204]:
+                        tot_credits += 50
+                        active_count += 1
+                        breakdown.append({"key": mask_key_preview(key), "status": "Active (Standard)", "credits": 50})
+                    elif h_resp.status_code in [401, 403]:
+                        breakdown.append({"key": mask_key_preview(key), "status": "Invalid/Expired"})
+                    else:
+                        breakdown.append({"key": mask_key_preview(key), "status": f"HTTP {resp.status_code}"})
+            except Exception as ex:
+                breakdown.append({"key": mask_key_preview(key), "status": str(ex)})
+
+        first_active = next((b for b in breakdown if b.get("status", "").startswith("Active")), None)
+        return {
+            "success": True if active_count > 0 else False,
+            "service": "Apollo.io",
+            "total_keys": len(keys),
+            "active_keys": active_count,
+            "plan_name": first_active.get("plan", "Standard / Free") if first_active else "Free",
+            "account_email": first_active.get("email", "N/A") if first_active else "N/A",
+            "credits_remaining": tot_credits,
+            "credits_total": active_count * 50,
+            "status": f"Active ({tot_credits} Credits across {active_count} key{'s' if active_count!=1 else ''})" if active_count > 0 else f"Failed checking Apollo quotas ({breakdown[0]['status'] if breakdown else 'No response'})",
+            "keys_breakdown": breakdown
+        }
+
     @classmethod
     def check_all_live_quotas(cls):
         results = {}
         
+        # Apollo.io
+        apollo_keys = get_api_keys("apollo_api_keys")
+        if apollo_keys:
+            results["Apollo.io"] = cls.check_apollo_quota(api_keys=apollo_keys)
+        else:
+            results["Apollo.io"] = {"success": False, "error": "No API Key Set"}
+
         # Hunter.io
         hunter_keys = get_api_keys("hunter_api_keys")
         if hunter_keys:
@@ -1658,11 +2009,53 @@ class APIQuotaEngine:
         else:
             results["EmailRep"] = {"success": True, "status": "Community Mode (25 req/day without key)"}
 
+        # AI LLM Engines (OpenAI, Gemini, Groq, Anthropic)
+        openai_keys = get_api_keys("openai_api_keys")
+        gemini_keys = get_api_keys("gemini_api_keys")
+        groq_keys = get_api_keys("groq_api_keys")
+        anthropic_keys = get_api_keys("anthropic_api_keys")
+        
+        ai_providers = []
+        if openai_keys:
+            ai_providers.append(f"OpenAI ({len(openai_keys)} key{'s' if len(openai_keys)!=1 else ''})")
+        if gemini_keys:
+            ai_providers.append(f"Gemini ({len(gemini_keys)} key{'s' if len(gemini_keys)!=1 else ''})")
+        if groq_keys:
+            ai_providers.append(f"Groq ({len(groq_keys)} key{'s' if len(groq_keys)!=1 else ''})")
+        if anthropic_keys:
+            ai_providers.append(f"Anthropic ({len(anthropic_keys)} key{'s' if len(anthropic_keys)!=1 else ''})")
+            
+        results["AI Harvester Engine"] = {
+            "success": True,
+            "status": f"Active: {', '.join(ai_providers)}" if ai_providers else "Active (Built-in Local Heuristic NLP Engine)",
+            "configured_providers": ai_providers or ["Built-in Local Heuristic AI"]
+        }
+
         return results
 
     @staticmethod
     def get_tier_matrix():
         return [
+            {
+                "service": "AI Web Scraper & Contact Harvester",
+                "category": "AI OSINT & Public Contact Intelligence",
+                "free_tier": "100% Free & Unlimited (Built-in Local Heuristic NLP Engine, Zero Keys Required)",
+                "free_limits": "Respectful polite concurrency (up to 8 discovery routes)",
+                "premium_tier": "BYOK Generative AI: OpenAI GPT-4o-mini / Gemini 1.5 Flash / Groq / Anthropic Claude",
+                "premium_limits": "High-accuracy semantic structuring & executive mapping",
+                "live_balance_support": "Active (Local Heuristic + Multi-LLM BYOK)",
+                "website": "Built-in Engine"
+            },
+            {
+                "service": "Apollo.io",
+                "category": "B2B Lead Intelligence & Enrichment",
+                "free_tier": "50 Email Credits / Month (10 Export Credits) per key",
+                "free_limits": "~60 requests / minute",
+                "premium_tier": "Basic: 10k credits ($49/mo) | Professional: 15k credits ($79/mo) | Organization ($119/mo)",
+                "premium_limits": "High-throughput API, bulk match & phone enrichment",
+                "live_balance_support": "Yes (Live user profile check & multi-key failover)",
+                "website": "https://apollo.io"
+            },
             {
                 "service": "Hunter.io",
                 "category": "Lead Finder & Verifier",

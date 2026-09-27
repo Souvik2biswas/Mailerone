@@ -21,14 +21,15 @@
 
 ## 🚀 Overview
 
-**Mailerone** is an advanced, all-in-one email intelligence, lead generation, and OSINT toolkit designed for security researchers, penetration testers, OSINT investigators, recruiters, and sales engineers. It combines DNS protocol checks, SMTP server handshakes, disposable domain detection, **B2B email finding engines (ContactOut, SalesQL, SignalHire, FinalScout, Name2Email, Hunter)**, and integrations with industry-leading verification engines into a unified, interactive terminal dashboard.
+**Mailerone** is an advanced, all-in-one email intelligence, lead generation, and OSINT toolkit designed for security researchers, penetration testers, OSINT investigators, recruiters, and sales engineers. It combines DNS protocol checks, SMTP server handshakes, disposable domain detection, **B2B email finding engines (Apollo.io, ContactOut, SalesQL, SignalHire, FinalScout, Name2Email, Hunter)**, and integrations with industry-leading verification engines into a unified, interactive terminal dashboard.
 
 ---
 
 ## ✨ Features
 
 - **💼 B2B Email Finders & Lead Enrichment Suite**
-  - **All-in-One Multi-Finder Pipeline**: Query Hunter.io, ContactOut, SalesQL, SignalHire, FinalScout, and Name2Email simultaneously.
+  - **All-in-One Multi-Finder Pipeline**: Query Apollo.io, Hunter.io, ContactOut, SalesQL, SignalHire, FinalScout, and Name2Email simultaneously.
+  - **Apollo.io B2B Intelligence**: High-accuracy lead finding, person enrichment, and corporate email discovery via Name + Domain / LinkedIn Profile with multi-key failover and live credit checking.
   - **Name2Email / Name2Mail Smart Permutator**: Generates 34 business email patterns with parallel multi-threaded DNS and MX verification.
   - **ContactOut Integration**: Search corporate/personal emails and phone numbers via Name + Company/Domain or LinkedIn Profile URL.
   - **SalesQL Integration**: Extract verified B2B emails, phone numbers, and professional headlines.
@@ -59,6 +60,14 @@
   - **Gravatar Integration**: Extract real names, profile usernames, bios, and avatar images.
   - **GitHub Commit Search**: Discover associated GitHub profiles and commits by email address.
   - **EmailRep.io**: Check domain age, reputation, spam history, data breaches, and suspicious activity.
+
+- **🌐 AI-Powered Web Scraper & Contact Harvester**
+  - **Multi-Route Crawler**: Concurrently crawls high-value target routes (`/`, `/contact`, `/team`, `/about`, `/leadership`, `/impressum`, `/legal`).
+  - **Spambot Email De-obfuscation**: Resolves hidden emails (`name [at] domain [dot] com`, `contact(at)domain`, HTML numeric entities `&#64;`, URL encoding).
+  - **Role & Executive Classification**: Automatically categorizes emails into Executive/Personal, Departmental/Role, or External Affiliates.
+  - **Phone & Social Media Extraction**: Discovers phone numbers with context labels (`HQ`, `Toll-Free`, `Support`) and maps social profiles (LinkedIn Company & Personal, Twitter/X, GitHub, YouTube, etc.).
+  - **Two-Tier AI Engine**: Instant Built-in Local Heuristic NLP Engine (zero external API keys, 100% free) with optional BYOK Generative LLMs (OpenAI GPT-4o, Google Gemini Flash, Groq Llama-3, Anthropic Claude).
+  - **Deliverability Handoff & Export**: 1-click handoff to Comprehensive Deliverability Scan and export to `contacts_<domain>.json` / `contacts_<domain>.txt`.
 
 - **🔀 Name-to-Email Permutation Generator**
   - Generate standard business email patterns (`first.last@domain`, `f.last@domain`, `first@domain`, etc.) and export candidates to `result.txt`.
@@ -124,14 +133,15 @@ python3 Mailerone.py
     [2] Check Username across 70+ Email Domains
      |
     [3] Comprehensive Multi-Engine Email Scan (All-in-One Deliverability)
-    [4] B2B Email Finders & Lead Enrichment Suite (ContactOut, SalesQL, SignalHire, FinalScout, Name2Mail, Hunter)
+    [4] B2B Email Finders & Lead Enrichment Suite (Apollo, ContactOut, SalesQL, SignalHire, FinalScout, Name2Mail, Hunter)
      |
     [5] AbstractAPI Email Verifier
     [6] Commercial Verifiers (ZeroBounce / Debounce / Mailboxlayer)
     [7] OSINT & Identity Profiler (Gravatar + GitHub + EmailRep)
-    [8] Name-to-Email Permutation Generator (Save to result.txt)
+    [8] AI Web Scraper & Contact Harvester (Emails, Phones, Socials & Team)
+    [9] Name-to-Email Permutation Generator (Save to result.txt)
      |
-    [9] API Keys, Usage Quotas & Tier Limits Manager
+    [10] API Keys, Usage Quotas & Tier Limits Manager
     [0] Exit Mailerone
 ```
 
@@ -143,6 +153,8 @@ Mailerone supports real-time quota inspection and provides a comprehensive break
 
 | Service | Engine Category | Free Tier Allowance | Free Rate Limits | Premium / Paid Tiers | Live Quota Check |
 |---|---|---|---|---|:---:|
+| **AI Web Scraper & Harvester** | AI Public Intelligence & Scraping | **100% Free & Unlimited** (Built-in Heuristics) | Polite concurrency (8 routes) | **BYOK**: OpenAI / Gemini / Groq / Claude | ✅ Local Heuristics + Multi-LLM |
+| **Apollo.io** | B2B Lead Intelligence & Enrichment | **50 Email Credits** / mo (10 Export Credits) | ~60 req/min | **Basic**: 10k credits ($49/mo)<br>**Professional**: 15k credits ($79/mo) | ✅ Yes (Live user profile check & multi-key failover) |
 | **Hunter.io** | Lead Finder & Verifier | **25 Searches + 50 Verifications** / mo | 10 req/min | **Starter**: 500 searches ($49/mo)<br>**Growth**: 5k searches ($149/mo) | ✅ Yes (Live searches, verifications & reset date) |
 | **ContactOut** | B2B Email & Phone Finder | **40 Work Emails + 5 Direct Phones** / mo | Standard query rate | **Sales Plan**: 500 emails + 50 phones ($49/mo)<br>**Recruiter**: 1k emails ($99/mo) | ✅ Yes (Live Work Emails & Direct Phones balance) |
 | **SalesQL** | LinkedIn & Lead Enrichment | **50 Credits** / mo (1 credit = 1 email) | Standard rate | **Starter**: 1,000 credits ($39/mo)<br>**Advanced**: 3,000 credits ($79/mo) | ✅ Yes (Live Monthly Credits & Usage balance) |
@@ -158,7 +170,7 @@ Mailerone supports real-time quota inspection and provides a comprehensive break
 | **Disify & Google DoH** | DNS & Burner Detection | **100% Free Public Services** | ~60 req/min (Disify)<br>Unlimited (Google DoH) | **Completely Free & Open Access** | ✅ Always Active |
 
 > [!TIP]
-> You can check your **real-time remaining credit balance and reset dates** directly inside Mailerone by selecting **Option `[9] API Keys, Usage Quotas & Tier Limits Manager` ➔ `[L] Check Real-Time API Quotas`**.
+> You can check your **real-time remaining credit balance and reset dates** directly inside Mailerone by selecting **Option `[10] API Keys, Usage Quotas & Tier Limits Manager` ➔ `[L] Check Real-Time API Quotas`**.
 
 ---
 
@@ -180,6 +192,9 @@ Example local on-device `config.json`:
 
 ```json
 {
+    "apollo_api_keys": [
+        "YOUR_APOLLO_API_KEY"
+    ],
     "hunter_api_keys": [
         "YOUR_HUNTER_API_KEY"
     ],
@@ -192,7 +207,19 @@ Example local on-device `config.json`:
     "debounce_api_key": "YOUR_DEBOUNCE_KEY",
     "mailboxlayer_api_key": "YOUR_MAILBOXLAYER_KEY",
     "emailrep_api_key": "YOUR_EMAILREP_KEY",
-    "github_token": "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN"
+    "github_token": "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN",
+    "openai_api_keys": [
+        "YOUR_OPENAI_API_KEY"
+    ],
+    "gemini_api_keys": [
+        "YOUR_GEMINI_API_KEY"
+    ],
+    "groq_api_keys": [
+        "YOUR_GROQ_API_KEY"
+    ],
+    "anthropic_api_keys": [
+        "YOUR_ANTHROPIC_API_KEY"
+    ]
 }
 ```
 

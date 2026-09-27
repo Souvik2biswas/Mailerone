@@ -1280,6 +1280,120 @@ a {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* AI Scraper & Contact Harvester Styles */
+.step-pill {
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.step-pill.active {
+  background: rgba(250, 204, 21, 0.2);
+  border-color: var(--accent-yellow);
+  color: var(--accent-yellow-light);
+  box-shadow: 0 0 10px rgba(250, 204, 21, 0.25);
+  animation: pulse 1.4s infinite;
+}
+
+.step-pill.done {
+  background: rgba(34, 197, 94, 0.18);
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+
+.badge-exec {
+  background: rgba(34, 197, 94, 0.18);
+  color: var(--accent-green);
+  border: 1px solid rgba(34, 197, 94, 0.45);
+}
+
+.badge-role {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.badge-ext {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+.social-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.social-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--accent-yellow);
+  transform: translateY(-2px);
+}
+
+.phone-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  color: var(--accent-green);
+  text-decoration: none;
+  font-family: monospace;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.phone-pill:hover {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: var(--accent-green);
+}
+
+.team-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.team-card:hover {
+  border-color: rgba(250, 204, 21, 0.35);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.team-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-yellow) 0%, var(--accent-green) 100%);
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .hero-title { font-size: 2.6rem; }
