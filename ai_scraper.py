@@ -90,11 +90,12 @@ class AIScraperEngine:
         """Strip scripts, styles, and markup to retrieve clean, readable text."""
         if not raw_html:
             return ""
-        # Remove script and style tags
+        # Remove script, style, noscript, svg, and iframe tags
         text = re.sub(r'(?is)<script.*?</script>', ' ', raw_html)
-        text = re.sub(r'(?is)<style.*?</style>', ' ', raw_html)
-        text = re.sub(r'(?is)<noscript.*?</noscript>', ' ', raw_html)
-        text = re.sub(r'(?is)<svg.*?</svg>', ' ', raw_html)
+        text = re.sub(r'(?is)<style.*?</style>', ' ', text)
+        text = re.sub(r'(?is)<noscript.*?</noscript>', ' ', text)
+        text = re.sub(r'(?is)<svg.*?</svg>', ' ', text)
+        text = re.sub(r'(?is)<iframe.*?</iframe>', ' ', text)
         # Convert break tags and paragraph ends to newlines
         text = re.sub(r'(?i)<(br|/p|/div|/li|/h[1-6]|/tr)>', '\n', text)
         # Strip all other HTML tags
@@ -240,9 +241,9 @@ class AIScraperEngine:
             return False
         if len(email) < 6 or len(email) > 100:
             return False
-        # Filter forbidden file extensions
+        # Filter forbidden file extensions and ensure valid alphabetic TLD
         ext = domain.rsplit(".", 1)[-1].lower()
-        if ext in FORBIDDEN_EXTENSIONS:
+        if ext in FORBIDDEN_EXTENSIONS or not re.match(r'^[a-z]{2,24}$', ext):
             return False
         # Filter dummy placeholder domains
         if domain.lower() in PLACEHOLDER_DOMAINS:
@@ -333,15 +334,25 @@ class AIScraperEngine:
         s = urllib.parse.unquote(s)
         # Remove leading tel: or callto:
         s = re.sub(r'^(?:tel:|callto:)', '', s, flags=re.IGNORECASE).strip()
+        # Normalize newlines and whitespace
+        s = re.sub(r'[\r\n\t]+', ' ', s)
+        s = re.sub(r'\s+', ' ', s).strip()
         # Keep +, digits, dashes, spaces, parens, dots
         s = re.sub(r'[^\d+().\-\s]', '', s).strip()
         
+        # If dots are present, only allow standard dot-separated phone formats (e.g. 800.555.0199)
+        if "." in s and not re.match(r'^\+?[0-9]{1,4}(?:\.[0-9]{2,5}){2,4}$', s):
+            return ""
+
         # Count actual digits
         digits = re.sub(r'\D', '', s)
         if len(digits) < 7 or len(digits) > 15:
             return ""
         # Avoid year strings (e.g. 2024-2025)
         if len(digits) == 8 and (s.startswith("201") or s.startswith("202")):
+            return ""
+        # Avoid repetitive dummy digits
+        if len(set(digits)) == 1:
             return ""
         # Avoid dimensions (e.g. 1920x1080)
         return s
