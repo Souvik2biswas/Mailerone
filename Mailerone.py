@@ -4,6 +4,7 @@ import sys
 import time
 import random
 import requests
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from config_manager import (
     load_config,
     save_config,
@@ -116,37 +117,209 @@ def checkdomain():
     pause()
 
 # -------------------------------------------------------------
-# 2. Check Username on 70+ Email Domains
+# 2. Webmail Address Matrix Across 75+ Global Providers
 # -------------------------------------------------------------
+GLOBAL_ESP_REGISTRY = [
+    # Global Webmail Leaders
+    ("gmail.com", "Google Workspace / Gmail", "Global"),
+    ("yahoo.com", "Yahoo Mail", "Global"),
+    ("outlook.com", "Microsoft Outlook", "Global"),
+    ("hotmail.com", "Microsoft Hotmail", "Global"),
+    ("live.com", "Microsoft Live", "Global"),
+    ("icloud.com", "Apple iCloud", "Global"),
+    ("aol.com", "AOL Mail", "Global"),
+    ("zoho.com", "Zoho Mail", "Global"),
+    ("proton.me", "Proton Mail", "Global / Privacy"),
+    ("protonmail.com", "Proton Mail (Legacy)", "Global / Privacy"),
+    ("mail.com", "Mail.com", "Global"),
+    ("gmx.com", "GMX Mail International", "Global"),
+    ("gmx.net", "GMX Mail Germany", "Europe"),
+    ("web.de", "1&1 WEB.DE", "Europe"),
+    ("tuta.com", "Tuta Mail (Tutanota)", "Global / Privacy"),
+    ("tutanota.com", "Tutanota Legacy", "Global / Privacy"),
+    ("fastmail.com", "Fastmail", "Global / Privacy"),
+    ("mailbox.org", "Mailbox.org", "Europe / Privacy"),
+    ("posteo.de", "Posteo", "Europe / Privacy"),
+    ("runbox.com", "Runbox", "Europe / Privacy"),
+    ("startmail.com", "StartMail", "Europe / Privacy"),
+
+    # European Regional Providers
+    ("yandex.com", "Yandex Mail Global", "Global / CIS"),
+    ("yandex.ru", "Yandex Mail Russia", "Europe / CIS"),
+    ("ya.ru", "Yandex Short", "Europe / CIS"),
+    ("mail.ru", "VK Mail.ru", "Europe / CIS"),
+    ("inbox.ru", "VK Inbox.ru", "Europe / CIS"),
+    ("list.ru", "VK List.ru", "Europe / CIS"),
+    ("bk.ru", "VK BK.ru", "Europe / CIS"),
+    ("rambler.ru", "Rambler Mail", "Europe / CIS"),
+    ("orange.fr", "Orange France", "Europe"),
+    ("wanadoo.fr", "Wanadoo France", "Europe"),
+    ("free.fr", "Free France", "Europe"),
+    ("sfr.fr", "SFR France", "Europe"),
+    ("laposte.net", "La Poste France", "Europe"),
+    ("t-online.de", "Deutsche Telekom", "Europe"),
+    ("freenet.de", "Freenet Germany", "Europe"),
+    ("arcor.de", "Vodafone Arcor", "Europe"),
+    ("libero.it", "Libero Mail Italy", "Europe"),
+    ("virgilio.it", "Virgilio Mail Italy", "Europe"),
+    ("tim.it", "TIM Telecom Italia", "Europe"),
+    ("alice.it", "Alice Italy", "Europe"),
+    ("btinternet.com", "BT Internet UK", "Europe"),
+    ("virginmedia.com", "Virgin Media UK", "Europe"),
+    ("sky.com", "Sky UK", "Europe"),
+
+    # North American Telcos & ISPs
+    ("comcast.net", "Xfinity / Comcast", "North America"),
+    ("sbcglobal.net", "AT&T / SBCGlobal", "North America"),
+    ("att.net", "AT&T Mail", "North America"),
+    ("verizon.net", "Verizon Mail", "North America"),
+    ("cox.net", "Cox Communications", "North America"),
+    ("charter.net", "Spectrum / Charter", "North America"),
+    ("bell.net", "Bell Canada", "North America"),
+    ("rogers.com", "Rogers Canada", "North America"),
+    ("shaw.ca", "Shaw Canada", "North America"),
+
+    # Asia-Pacific Giants
+    ("qq.com", "Tencent QQ Mail", "Asia-Pacific"),
+    ("163.com", "NetEase 163 Mail", "Asia-Pacific"),
+    ("126.com", "NetEase 126 Mail", "Asia-Pacific"),
+    ("sina.com", "Sina Weibo Mail", "Asia-Pacific"),
+    ("aliyun.com", "Alibaba Aliyun", "Asia-Pacific"),
+    ("naver.com", "Naver Mail Korea", "Asia-Pacific"),
+    ("daum.net", "Kakao Daum Korea", "Asia-Pacific"),
+    ("hanmail.net", "Kakao Hanmail Korea", "Asia-Pacific"),
+    ("rediffmail.com", "Rediffmail India", "Asia-Pacific"),
+    ("yahoo.co.jp", "Yahoo Japan", "Asia-Pacific"),
+
+    # Professional & Specialty Vanity ESPs
+    ("email.com", "Email.com", "Specialty"),
+    ("usa.com", "USA.com", "Specialty"),
+    ("europe.com", "Europe.com", "Specialty"),
+    ("asia.com", "Asia.com", "Specialty"),
+    ("engineer.com", "Engineer.com", "Specialty"),
+    ("post.com", "Post.com", "Specialty"),
+    ("dr.com", "Doctor.com Vanity", "Specialty"),
+    ("myself.com", "Myself.com", "Specialty"),
+    ("consultant.com", "Consultant.com", "Specialty"),
+    ("cheerful.com", "Cheerful.com", "Specialty"),
+    ("workmail.com", "WorkMail", "Specialty"),
+    ("programmer.net", "Programmer.net", "Specialty"),
+    ("techie.com", "Techie.com", "Specialty"),
+    ("iname.com", "IName Vanity", "Specialty")
+]
+
 def validator():
     cls()
     banner()
-    user = input(f"{space}{b}[{w}?{b}]{w} Enter username to test across domains: {b}").strip().lower()
+    user = input(f"{space}{b}[{w}?{b}]{w} Enter username handle to test across providers: {b}").strip().lower()
     if not user:
         return
+    # Strip any trailing @domain if user accidentally typed it
+    if "@" in user:
+        user = user.split("@")[0].strip()
+        
     cls()
     banner()
     print(w + lines)
-    print(f"{space}{b}[*]{w} Testing username {y}{user}{w} across 70+ email providers...\n")
+    print(f"{space}{b}[*]{w} Generating webmail candidate matrix for {y}{user}{w} across {len(GLOBAL_ESP_REGISTRY)} global providers...")
+    print(f"{space}{b}[*]{w} Resolving mail server (MX) infrastructure in parallel via DNS-over-HTTPS...\n")
 
-    domains = [
-        "gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "live.com",
-        "icloud.com", "email.com", "aol.com", "qq.com", "comcast.net",
-        "proton.me", "protonmail.com", "inbox.com", "zoho.com", "mailbox.org",
-        "yandex.com", "yandex.ru", "mail.ru", "inbox.ru", "list.ru", "bk.ru",
-        "rambler.ru", "runbox.com", "mail.com", "usa.com", "europe.com",
-        "asia.com", "engineer.com", "post.com", "dr.com", "myself.com",
-        "consultant.com", "cheerful.com", "workmail.com", "programmer.net"
-    ]
+    def _probe_provider(item):
+        domain, provider_name, region = item
+        candidate_email = f"{user}@{domain}"
+        mx_records = DNSInspectorEngine.query_doh(domain, "MX")
+        has_mx = len(mx_records) > 0
+        return {
+            "domain": domain,
+            "provider": provider_name,
+            "region": region,
+            "email": candidate_email,
+            "has_mx": has_mx,
+            "mx_count": len(mx_records)
+        }
 
-    for domain in domains:
-        email = f"{user}@{domain}"
-        dis = DisifyEngine.verify(email)
-        if dis.get("success") and dis.get("dns"):
-            print(f"{space}{B} READY {w} Domain Active: {g}{domain:<18}{w} -> {email}")
+    t0 = time.time()
+    results = []
+    with ThreadPoolExecutor(max_workers=16) as executor:
+        futures = {executor.submit(_probe_provider, item): item for item in GLOBAL_ESP_REGISTRY}
+        for fut in as_completed(futures):
+            try:
+                results.append(fut.result())
+            except Exception:
+                pass
+    t1 = time.time()
+
+    # Sort results by region, then provider name
+    results.sort(key=lambda x: (x["region"], x["provider"]))
+
+    # Group and display by region
+    current_region = None
+    for r_item in results:
+        if r_item["region"] != current_region:
+            current_region = r_item["region"]
+            print(f"\n{space}{p}--- {current_region} Providers ---{w}")
+            
+        if r_item["has_mx"]:
+            status_tag = f"{G} MX-ACTIVE {w}"
+            print(f"{space}{status_tag} {g}{r_item['domain']:<18}{w} | {r_item['provider']:<26} -> {y}{r_item['email']}{w}")
         else:
-            print(f"{space}{r} NO-MX {w} Domain Inactive: {d}{domain:<18}{w}")
-    pause()
+            status_tag = f"{R}  NO-MX   {w}"
+            print(f"{space}{status_tag} {d}{r_item['domain']:<18}{w} | {r_item['provider']:<26} -> {d}Mail servers offline{w}")
+
+    active_count = sum(1 for x in results if x["has_mx"])
+    print(f"\n" + lines)
+    print(f"{space}{G} INFRASTRUCTURE SWEEP COMPLETE {w} {active_count}/{len(results)} Provider Domains Active ({t1-t0:.2f}s)")
+    print(w + lines)
+    print(f"{space}{y}[!] INFRASTRUCTURE NOTICE:{w}")
+    print(f"{space}    [MX-ACTIVE] confirms the mail servers for this provider are online and accepting email.")
+    print(f"{space}    It does {r}NOT{w} verify that {y}{user}{w} has registered this specific mailbox on the provider.")
+    print(f"{space}    To verify actual recipient mailbox existence, choose a deep scan option below.")
+    print(w + lines + "\n")
+
+    while True:
+        print(f"{space}{b}[{w}1{b}]{w} ⚡ Run Deep Deliverability Scan on a Candidate Address (SMTP + Multi-API)")
+        print(f"{space}{b}[{w}2{b}]{w} 🕵️ Check OSINT Registrations for '{user}' on GitHub & Gravatar")
+        print(f"{space}{b}[{w}3{b}]{w} 💾 Export All {len(results)} Generated Addresses to 'result.txt'")
+        print(f"{space}{b}[{w}0{b}]{w} Return to Main Menu\n")
+        
+        sub_choice = input(f"{space}{b}[{w}?{b}]{w} Select action [0-3]: {b}").strip()
+        
+        if sub_choice == "1":
+            target_addr = input(f"{space}{b}[{w}?{b}]{w} Enter candidate email to deep scan (or press Enter for {user}@gmail.com): {b}").strip()
+            if not target_addr:
+                target_addr = f"{user}@gmail.com"
+            print()
+            run_comprehensive_scan(target_addr)
+            print()
+        elif sub_choice == "2":
+            print(f"\n{space}{p}--- OSINT Identity Search for Handle: {user} ---{w}")
+            gh = OSINTEngine.check_github(user)
+            if gh.get("found"):
+                print(f"{space}{g}[+]{w} GitHub Account : {G} FOUND {w} (@{gh.get('username')})")
+                print(f"{space}    Profile URL    : {gh.get('profile_url')}")
+            else:
+                print(f"{space}{d}[-]{w} GitHub Account : Not found under exact username")
+                
+            grav = OSINTEngine.check_gravatar(f"{user}@gmail.com")
+            if grav.get("has_gravatar"):
+                print(f"{space}{g}[+]{w} Gravatar Link  : {G} FOUND {w} ({grav.get('avatar_url')})")
+            else:
+                print(f"{space}{d}[-]{w} Gravatar Link  : No public profile on primary address")
+            print()
+        elif sub_choice == "3":
+            try:
+                with open("result.txt", "w", encoding="utf-8") as f:
+                    f.write(f"# Mailerone Webmail Matrix for handle: {user}\n")
+                    f.write(f"# Generated {len(results)} candidate addresses across global ESPs\n\n")
+                    for item in results:
+                        f.write(f"{item['email']}\n")
+                print(f"\n{space}{g}[+]{w} Successfully exported {len(results)} email addresses to {y}result.txt{w}!\n")
+            except Exception as e:
+                print(f"\n{space}{r}[!] Failed to export result.txt: {e}{w}\n")
+        elif sub_choice in ["0", ""]:
+            break
+        else:
+            print(f"{space}{r}Invalid selection.{w}")
 
 # -------------------------------------------------------------
 # 3. Full Multi-Engine Email Scan
@@ -959,7 +1132,7 @@ def main_menu():
         cls()
         banner()
         print(f"{space}{b}[{w}1{b}]{w} Domain Inspector (DNS, MX, SPF, DMARC & Burner Check)")
-        print(f"{space}{b}[{w}2{b}]{w} Check Username across 70+ Email Domains")
+        print(f"{space}{b}[{w}2{b}]{w} Webmail Address Matrix Across 75+ Global Providers (MX Check & Mailbox Probe)")
         print(f"{space} {w}|")
         print(f"{space}{b}[{w}3{b}]{w} {G} Comprehensive Multi-Engine Email Scan {w} (All-in-One Deliverability)")
         print(f"{space}{b}[{w}4{b}]{w} {B} B2B Email Finders & Lead Enrichment Suite {w} (Apollo, ContactOut, SalesQL, SignalHire, FinalScout, Name2Mail, Hunter)")

@@ -47,8 +47,8 @@
   - Comprehensive deliverability analysis aggregating DNS, SMTP handshake, Disify, Hunter.io, AbstractAPI, ZeroBounce, Debounce, and Mailboxlayer.
   - Calculated **Deliverability Score (0–100%)** with clear status indicators: `DELIVERABLE`, `RISKY`, or `UNDELIVERABLE`.
 
-- **🔍 Username Search Across 70+ Email Providers**
-  - Check existence of target usernames across 70+ popular mail services (Gmail, Yahoo, Outlook, ProtonMail, Mail.ru, Yandex, iCloud, Zoho, etc.).
+- **🔍 Webmail Address Matrix Across 75+ Global Providers**
+  - Generates candidate addresses across 75+ global webmail & regional ESPs (Google Workspace, Yahoo, Microsoft, Apple, Proton, Yandex, Mail.ru, QQ, Naver, etc.) with real-time MX infrastructure checks and interactive deep mailbox deliverability scans.
 
 - **🛡️ Multi-API Verifier Engines**
   - **AbstractAPI**: Real-time deliverability, SMTP checks, and catch-all detection.
@@ -130,7 +130,7 @@ python3 Mailerone.py
     >> Comprehensive Email Finding, Multi-API Deliverability & OSINT Suite
 
     [1] Domain Inspector (DNS, MX, SPF, DMARC & Burner Check)
-    [2] Check Username across 70+ Email Domains
+    [2] Webmail Address Matrix Across 75+ Global Providers (MX Check & Mailbox Probe)
      |
     [3] Comprehensive Multi-Engine Email Scan (All-in-One Deliverability)
     [4] B2B Email Finders & Lead Enrichment Suite (Apollo, ContactOut, SalesQL, SignalHire, FinalScout, Name2Mail, Hunter)
