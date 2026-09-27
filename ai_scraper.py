@@ -895,12 +895,22 @@ class AIScraperEngine:
 
         return "heuristic", None
 
+    DEFAULT_AI_MODELS = {
+        "openai": "gpt-4o-mini",
+        "gemini": "gemini-2.0-flash",
+        "groq": "llama-3.3-70b-versatile",
+        "anthropic": "claude-3-5-haiku-latest"
+    }
+
     @classmethod
     def _call_openai_compatible(cls, provider, api_key, prompt):
-        """Call OpenAI or Groq chat completions endpoint."""
+        """Call OpenAI or Groq chat completions endpoint with automatic model resolution and fallback."""
         url = "https://api.openai.com/v1/chat/completions" if provider == "openai" else "https://api.groq.com/openai/v1/chat/completions"
-        model = "gpt-4o-mini" if provider == "openai" else "llama-3.1-8b-instant"
-        
+        if provider == "openai":
+            model = get_api_key("openai_model") or cls.DEFAULT_AI_MODELS["openai"]
+        else:
+            model = get_api_key("groq_model") or cls.DEFAULT_AI_MODELS["groq"]
+
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
@@ -918,12 +928,21 @@ class AIScraperEngine:
         if resp.status_code == 200:
             content = resp.json()["choices"][0]["message"]["content"]
             return json.loads(content)
+        elif resp.status_code in [400, 404] and provider == "groq" and model != "llama-3.1-8b-instant":
+            # Fallback to ultra-fast 8B instant if 70B versatile encounters capacity or tier constraints
+            fb_body = dict(body)
+            fb_body["model"] = "llama-3.1-8b-instant"
+            fb_resp = requests.post(url, headers=headers, json=fb_body, timeout=18)
+            if fb_resp.status_code == 200:
+                content = fb_resp.json()["choices"][0]["message"]["content"]
+                return json.loads(content)
         return None
 
     @classmethod
     def _call_gemini(cls, api_key, prompt):
-        """Call Google Gemini 1.5 Flash REST endpoint."""
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+        """Call Google Gemini REST endpoint (defaulting to gemini-2.0-flash with 1.5-flash fallback)."""
+        model = get_api_key("gemini_model") or cls.DEFAULT_AI_MODELS["gemini"]
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
         body = {
             "contents": [{
                 "parts": [{"text": f"{prompt}\nReturn ONLY pure valid JSON."}]
@@ -937,19 +956,27 @@ class AIScraperEngine:
         if resp.status_code == 200:
             text = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
             return json.loads(text)
+        elif resp.status_code in [400, 404] and model != "gemini-1.5-flash":
+            # Graceful fallback to gemini-1.5-flash
+            fb_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+            fb_resp = requests.post(fb_url, json=body, timeout=18)
+            if fb_resp.status_code == 200:
+                text = fb_resp.json()["candidates"][0]["content"]["parts"][0]["text"]
+                return json.loads(text)
         return None
 
     @classmethod
     def _call_anthropic(cls, api_key, prompt):
-        """Call Anthropic Messages REST endpoint."""
+        """Call Anthropic Messages REST endpoint (defaulting to claude-3-5-haiku-latest with snapshot fallback)."""
         url = "https://api.anthropic.com/v1/messages"
+        model = get_api_key("anthropic_model") or cls.DEFAULT_AI_MODELS["anthropic"]
         headers = {
             "x-api-key": api_key,
             "anthropic-version": "2023-06-01",
             "Content-Type": "application/json"
         }
         body = {
-            "model": "claude-3-5-haiku-20241022",
+            "model": model,
             "max_tokens": 1500,
             "messages": [{"role": "user", "content": f"{prompt}\nRespond with JSON only."}]
         }
@@ -960,6 +987,16 @@ class AIScraperEngine:
             m = re.search(r'\{.*\}', txt, re.DOTALL)
             if m:
                 return json.loads(m.group(0))
+        elif resp.status_code in [400, 404] and "latest" in model:
+            # Fallback to dated snapshot if dynamic latest alias is rejected on legacy API accounts
+            fb_body = dict(body)
+            fb_body["model"] = "claude-3-5-haiku-20241022"
+            fb_resp = requests.post(url, headers=headers, json=fb_body, timeout=18)
+            if fb_resp.status_code == 200:
+                txt = fb_resp.json()["content"][0]["text"]
+                m = re.search(r'\{.*\}', txt, re.DOTALL)
+                if m:
+                    return json.loads(m.group(0))
         return None
 
     # -------------------------------------------------------------

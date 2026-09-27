@@ -437,6 +437,42 @@ class TestMultiKeyFailover(unittest.TestCase):
         self.assertEqual(res_catchall["verdict"], "RISKY")
         self.assertTrue(50 <= res_catchall["score"] <= 65)
 
+    @patch("requests.post")
+    def test_ai_scraper_modern_models_and_fallbacks(self, mock_post):
+        # 1. Verify modern default models dictionary
+        self.assertEqual(AIScraperEngine.DEFAULT_AI_MODELS["anthropic"], "claude-3-5-haiku-latest")
+        self.assertEqual(AIScraperEngine.DEFAULT_AI_MODELS["gemini"], "gemini-2.0-flash")
+        self.assertEqual(AIScraperEngine.DEFAULT_AI_MODELS["groq"], "llama-3.3-70b-versatile")
+        self.assertEqual(AIScraperEngine.DEFAULT_AI_MODELS["openai"], "gpt-4o-mini")
+
+        # 2. Test Anthropic latest alias with fallback on 404
+        resp_404 = MagicMock(status_code=404, text="Model not found")
+        resp_200 = MagicMock(status_code=200)
+        resp_200.json.return_value = {
+            "content": [{"text": '{"company_name": "TestCorp"}'}]
+        }
+        mock_post.side_effect = [resp_404, resp_200]
+        res = AIScraperEngine._call_anthropic("ant_key", "prompt")
+        self.assertIsNotNone(res)
+        self.assertEqual(res.get("company_name"), "TestCorp")
+        # Verify first call used latest and second call used fallback snapshot
+        self.assertEqual(mock_post.call_args_list[0][1]["json"]["model"], "claude-3-5-haiku-latest")
+        self.assertEqual(mock_post.call_args_list[1][1]["json"]["model"], "claude-3-5-haiku-20241022")
+
+        # 3. Test Gemini 2.0 Flash with 1.5 Flash fallback on 404
+        mock_post.reset_mock()
+        resp_gem_404 = MagicMock(status_code=404, text="Model not found")
+        resp_gem_200 = MagicMock(status_code=200)
+        resp_gem_200.json.return_value = {
+            "candidates": [{"content": {"parts": [{"text": '{"company_name": "GemCorp"}'}]}}]
+        }
+        mock_post.side_effect = [resp_gem_404, resp_gem_200]
+        res_gem = AIScraperEngine._call_gemini("gem_key", "prompt")
+        self.assertIsNotNone(res_gem)
+        self.assertEqual(res_gem.get("company_name"), "GemCorp")
+        self.assertIn("gemini-2.0-flash", mock_post.call_args_list[0][0][0])
+        self.assertIn("gemini-1.5-flash", mock_post.call_args_list[1][0][0])
+
 if __name__ == "__main__":
     unittest.main()
 
