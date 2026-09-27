@@ -6,8 +6,8 @@
 
 <p align="center">
   <a href="https://souvik2biswas.github.io/Mailerone/"><img src="https://img.shields.io/badge/Live_Web_Demo-Online-brightgreen?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Live Web Demo"></a>
-  <a href="https://github.com/Souvik2biswas/Mailerone"><img src="https://img.shields.io/badge/Version-2.1-blue?style=for-the-badge&logo=python" alt="Version 2.1"></a>
-  <a href="https://github.com/Souvik2biswas/Mailerone/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-green?style=for-the-badge" alt="License"></a>
+  <a href="https://github.com/Souvik2biswas/Mailerone"><img src="https://img.shields.io/badge/Version-2.3-blue?style=for-the-badge&logo=python" alt="Version 2.3"></a>
+  <a href="https://github.com/Souvik2biswas/Mailerone/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-blue?style=for-the-badge" alt="License"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.8%2B-yellow?style=for-the-badge&logo=python" alt="Python 3.8+"></a>
   <a href="https://github.com/Souvik2biswas/Mailerone/stargazers"><img src="https://img.shields.io/github/stars/Souvik2biswas/Mailerone?style=for-the-badge&color=orange" alt="GitHub Stars"></a>
   <a href="https://github.com/Souvik2biswas/Mailerone/issues"><img src="https://img.shields.io/github/issues/Souvik2biswas/Mailerone?style=for-the-badge&color=red" alt="GitHub Issues"></a>
@@ -259,7 +259,7 @@ Mailerone/
 
 ## ⚖️ License
 
-This project is licensed under the **GNU General Public License v3.0**. See the [LICENSE](LICENSE) file for full details.
+This project is licensed under the **Apache License 2.0**. See the [LICENSE](LICENSE) file for full details.
 
 ## ⚠️ Disclaimer
 
