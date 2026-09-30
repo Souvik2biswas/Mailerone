@@ -734,8 +734,8 @@ def ai_scraper_menu():
         print(f"{space}  [1] Auto-Detect Best Engine (Uses configured OpenAI/Gemini/Groq/Anthropic, or Local Heuristic)")
         print(f"{space}  [2] Local Smart Heuristic NLP (Built-in, 100% Free, Instant)")
         print(f"{space}  [3] OpenAI (GPT-4o-mini)")
-        print(f"{space}  [4] Google Gemini (1.5 Flash)")
-        print(f"{space}  [5] Groq Llama-3 (High-Speed)")
+        print(f"{space}  [4] Google Gemini (3.8 Flash / 3.5 Lite)")
+        print(f"{space}  [5] Groq (High-Speed LLM)")
         print(f"{space}  [6] Anthropic Claude (3.5 Haiku)")
         ai_ch = input(f"{space}{b}[{w}?{b}]{w} Choice [1-6, default=1]: {b}").strip()
         ai_provider_map = {"1": "auto", "2": "heuristic", "3": "openai", "4": "gemini", "5": "groq", "6": "anthropic"}
@@ -759,15 +759,19 @@ def ai_scraper_menu():
         print(w + lines)
 
         # 1. Company Overview
+        cname = AIScraperEngine.sanitize_console_text(dossier.get('company_name', 'N/A'))
+        summary = AIScraperEngine.sanitize_console_text(dossier.get('summary', 'N/A'))
+        industry = AIScraperEngine.sanitize_console_text(dossier.get('industry', 'Unknown'))
         print(f"{space}{p}[1] Company Profile & Intelligence:{w}")
-        print(f"{space}    - Entity Name   : {w}{dossier.get('company_name', 'N/A')}")
+        print(f"{space}    - Entity Name   : {w}{cname}")
         print(f"{space}    - Target Domain : {w}{base_dom}")
-        print(f"{space}    - Summary       : {d}{dossier.get('summary', 'N/A')}{w}")
-        if dossier.get("industry") and dossier.get("industry") != "Unknown":
-            print(f"{space}    - Inferred Ind. : {w}{dossier.get('industry')}")
+        print(f"{space}    - Summary       : {d}{summary}{w}")
+        if industry and industry != "Unknown":
+            print(f"{space}    - Inferred Ind. : {w}{industry}")
         if dossier.get("headquarters"):
             for hq in dossier["headquarters"]:
-                print(f"{space}    - Headquarters  : {y}{hq}{w}")
+                safe_hq = AIScraperEngine.sanitize_console_text(hq)
+                print(f"{space}    - Headquarters  : {y}{safe_hq}{w}")
 
         # 2. Extracted Emails
         emails = dossier.get("emails", [])
@@ -831,15 +835,18 @@ def ai_scraper_menu():
             for tm in team:
                 em_tag = f"<{tm['email']}>" if tm.get("email") else "(No direct email)"
                 li_tag = f"| LI: {tm['linkedin']}" if tm.get("linkedin") else ""
-                print(f"{space}    {g}• {tm['name']}{w} - {d}{tm['title']}{w} {em_tag} {li_tag}")
+                safe_name = AIScraperEngine.sanitize_console_text(tm.get('name', ''))
+                safe_title = AIScraperEngine.sanitize_console_text(tm.get('title', ''))
+                print(f"{space}    {g}• {safe_name}{w} - {d}{safe_title}{w} {em_tag} {li_tag}")
 
         # Actions Menu
         print(f"\n{space}{w}--- Actions ---")
         print(f"{space}{b}[{w}1{b}]{w} Export Complete Dossier to contacts_{base_dom}.json")
         print(f"{space}{b}[{w}2{b}]{w} Export Discovered Emails to contacts_{base_dom}.txt")
         print(f"{space}{b}[{w}3{b}]{w} Handoff an Email to Comprehensive Deliverability Scan")
+        print(f"{space}{b}[{w}4{b}]{w} Enrich Leadership with Additional B2B APIs (Name2Email / Hunter)")
         print(f"{space}{b}[{w}0{b}]{w} Back / New Scan")
-        act = input(f"\n{space}{b}[{w}?{b}]{w} Select Action [0-3]: {b}").strip()
+        act = input(f"\n{space}{b}[{w}?{b}]{w} Select Action [0-4]: {b}").strip()
 
         if act == "1":
             fname = f"contacts_{base_dom}.json"
@@ -875,6 +882,18 @@ def ai_scraper_menu():
             else:
                 print(f"{space}{y}[!] No emails available for handoff.{w}")
                 pause()
+        elif act == "4":
+            print(f"\n{space}{b}[*]{w} Running B2B Lead Enrichment on detected leadership...")
+            AIScraperEngine.enrich_leadership_with_b2b(dossier)
+            new_emails = [e for e in dossier.get("emails", []) if "Enriched" in e.get("source", "")]
+            if new_emails:
+                print(f"{space}{g}[✓] Successfully discovered {len(new_emails)} new email addresses!{w}")
+                for ne in new_emails:
+                    print(f"{space}    {g}• {ne['email']}{w} ({ne['role_label']}) - {d}{ne['source']}{w}")
+                emails = dossier.get("emails", [])
+            else:
+                print(f"{space}{y}[!] No additional emails could be verified with current B2B endpoints.{w}")
+            pause()
 
 # -------------------------------------------------------------
 # 9. Permutation Name Finder (Generates & Saves to result.txt)

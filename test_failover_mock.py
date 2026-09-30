@@ -441,7 +441,7 @@ class TestMultiKeyFailover(unittest.TestCase):
     def test_ai_scraper_modern_models_and_fallbacks(self, mock_post):
         # 1. Verify modern default models dictionary
         self.assertEqual(AIScraperEngine.DEFAULT_AI_MODELS["anthropic"], "claude-3-5-haiku-latest")
-        self.assertEqual(AIScraperEngine.DEFAULT_AI_MODELS["gemini"], "gemini-2.0-flash")
+        self.assertEqual(AIScraperEngine.DEFAULT_AI_MODELS["gemini"], "gemini-3.8-flash")
         self.assertEqual(AIScraperEngine.DEFAULT_AI_MODELS["groq"], "llama-3.3-70b-versatile")
         self.assertEqual(AIScraperEngine.DEFAULT_AI_MODELS["openai"], "gpt-4o-mini")
 
@@ -459,7 +459,7 @@ class TestMultiKeyFailover(unittest.TestCase):
         self.assertEqual(mock_post.call_args_list[0][1]["json"]["model"], "claude-3-5-haiku-latest")
         self.assertEqual(mock_post.call_args_list[1][1]["json"]["model"], "claude-3-5-haiku-20241022")
 
-        # 3. Test Gemini 2.0 Flash with 1.5 Flash fallback on 404
+        # 3. Test Gemini 3.8 Flash with 3.5 Flash Lite fallback on 404
         mock_post.reset_mock()
         resp_gem_404 = MagicMock(status_code=404, text="Model not found")
         resp_gem_200 = MagicMock(status_code=200)
@@ -470,8 +470,8 @@ class TestMultiKeyFailover(unittest.TestCase):
         res_gem = AIScraperEngine._call_gemini("gem_key", "prompt")
         self.assertIsNotNone(res_gem)
         self.assertEqual(res_gem.get("company_name"), "GemCorp")
-        self.assertIn("gemini-2.0-flash", mock_post.call_args_list[0][0][0])
-        self.assertIn("gemini-1.5-flash", mock_post.call_args_list[1][0][0])
+        self.assertIn("gemini-3.8-flash", mock_post.call_args_list[0][0][0])
+        self.assertIn("gemini-3.5-flash-lite", mock_post.call_args_list[1][0][0])
 
 if __name__ == "__main__":
     unittest.main()

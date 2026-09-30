@@ -1,6 +1,7 @@
 import re
 import json
 import html
+import unicodedata
 import urllib.parse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
@@ -63,6 +64,23 @@ class AIScraperEngine:
     """
 
     @staticmethod
+    def sanitize_console_text(val):
+        """Sanitize text to be 100% safe for all console codepages (including Windows cp1252)."""
+        if not val or not isinstance(val, str):
+            return val or ""
+        s = unicodedata.normalize('NFKC', val)
+        char_map = {
+            '\u2011': '-', '\u2010': '-', '\u2012': '-', '\u2013': '-', '\u2014': '-', '\u2015': '-',
+            '\u2018': "'", '\u2019': "'", '\u201a': "'", '\u201b': "'",
+            '\u201c': '"', '\u201d': '"', '\u201e': '"', '\u201f': '"',
+            '\u00a0': ' ', '\u200b': '', '\u202f': ' ', '\ufeff': '',
+            '\u2022': '*', '\u2023': '*', '\u25e6': '*'
+        }
+        for orig, repl in char_map.items():
+            s = s.replace(orig, repl)
+        return s.strip()
+
+    @staticmethod
     def normalize_target_url(target):
         """Clean and normalize a domain or URL to a valid HTTPS URL."""
         if not target:
@@ -102,6 +120,17 @@ class AIScraperEngine:
         text = re.sub(r'<[^>]+>', ' ', text)
         # Unescape HTML entities
         text = html.unescape(text)
+        # Normalize Unicode and character mappings
+        text = unicodedata.normalize('NFKC', text)
+        char_map = {
+            '\u2011': '-', '\u2010': '-', '\u2012': '-', '\u2013': '-', '\u2014': '-', '\u2015': '-',
+            '\u2018': "'", '\u2019': "'", '\u201a': "'", '\u201b': "'",
+            '\u201c': '"', '\u201d': '"', '\u201e': '"', '\u201f': '"',
+            '\u00a0': ' ', '\u200b': '', '\u202f': ' ', '\ufeff': '',
+            '\u2022': '*', '\u2023': '*', '\u25e6': '*'
+        }
+        for orig, repl in char_map.items():
+            text = text.replace(orig, repl)
         # Normalize whitespace while preserving line structure
         lines = [re.sub(r'[ \t]+', ' ', l).strip() for l in text.split('\n')]
         return '\n'.join([l for l in lines if l])
@@ -411,8 +440,8 @@ class AIScraperEngine:
 
             # 2. Twitter / X
             elif any(d in clean_url for d in ["twitter.com", "x.com"]):
-                # Filter out intent, share, hashtag, search
-                if not any(bad in clean_url for bad in ["/share", "/intent", "/search", "/home", "/explore", "/privacy", "/tos"]):
+                # Filter out intent, share, hashtag, search, status, and platform subdomains
+                if not any(bad in clean_url for bad in ["/share", "/intent", "/search", "/home", "/explore", "/privacy", "/tos", "/status/", "/statuses/", "platform.twitter.com", "api.twitter.com"]):
                     handle = clean_url.split("/")[-1].replace("@", "")
                     if handle and handle.lower() not in ["twitter", "x"]:
                         socials["twitter_x"].append({"url": clean_url, "handle": f"@{handle}"})
@@ -429,9 +458,11 @@ class AIScraperEngine:
 
             # 4. YouTube
             elif "youtube.com" in clean_url or "youtu.be" in clean_url:
-                handle = clean_url.split("/")[-1]
-                socials["youtube"].append({"url": clean_url, "handle": handle})
-                seen.add(clean_url)
+                if not any(bad in clean_url for bad in ["/watch", "/embed", "/results", "/channel/videos", "/playlist", "/feed"]):
+                    handle = clean_url.split("/")[-1]
+                    if handle and handle.lower() not in ["youtube", "youtu", "watch"]:
+                        socials["youtube"].append({"url": clean_url, "handle": handle})
+                        seen.add(clean_url)
 
             # 5. Facebook
             elif "facebook.com" in clean_url and "/sharer" not in clean_url:
@@ -440,10 +471,12 @@ class AIScraperEngine:
                 seen.add(clean_url)
 
             # 6. Instagram
-            elif "instagram.com" in clean_url and "/p/" not in clean_url:
-                handle = clean_url.split("/")[-1]
-                socials["instagram"].append({"url": clean_url, "handle": f"@{handle}"})
-                seen.add(clean_url)
+            elif "instagram.com" in clean_url and "cdninstagram.com" not in clean_url and not any(clean_url.lower().endswith(ext) for ext in [".jpg", ".jpeg", ".png", ".webp", ".gif"]):
+                if not any(bad in clean_url for bad in ["/p/", "/reel/", "/stories/", "/explore/", "/direct/", "/accounts/"]):
+                    handle = clean_url.split("/")[-1].replace("@", "")
+                    if handle and handle.lower() not in ["instagram"]:
+                        socials["instagram"].append({"url": clean_url, "handle": f"@{handle}"})
+                        seen.add(clean_url)
 
             # 7. Discord
             elif "discord.gg" in clean_url or "discord.com/invite" in clean_url:
@@ -502,6 +535,18 @@ class AIScraperEngine:
 
         # 2. From HTML text
         clean_text = cls.clean_html_to_text(raw_html)
+        # Look for international / Indian / multi-line header addresses (e.g. HEAD OFFICE, REGISTERED OFFICE)
+        intl_addr_match = re.search(
+            r'(?:Head\s+Office|Headquarters|Registered\s+Office|Corporate\s+Office|Office\s+Address|Postal\s+Address|Location|HQ)[:\s\n]+'
+            r'([A-Za-z0-9\s.,#\-\/–—]{5,100}(?:[0-9]{5,6}|[A-Z]{1,2}[0-9][A-Z0-9]?\s?[0-9][A-Z]{2}))',
+            clean_text,
+            re.IGNORECASE
+        )
+        if intl_addr_match:
+            found = re.sub(r'\s+', ' ', intl_addr_match.group(1)).strip()
+            if 15 < len(found) < 140 and found not in addresses:
+                addresses.append(found)
+
         # Look for street/suite patterns
         addr_match = re.search(
             r'(?:Headquarters|Office|Address|Location|HQ)[:\s]+'
@@ -736,12 +781,24 @@ class AIScraperEngine:
 
             # Check if line_a looks like a name (2-3 words, capitalized, no punctuation)
             words = line_a.split()
+            non_names = {
+                "contact us", "about us", "our team", "read more", "learn more",
+                "click here", "home", "privacy policy", "terms of", "quick links",
+                "get in touch", "follow us", "latest news", "all rights", "site map",
+                "view all", "our story", "who we are", "join us", "our people",
+                "overview about", "give us", "call phone", "the founder", "board members"
+            }
             if 2 <= len(words) <= 3 and all(w[0].isupper() and w.isalpha() for w in words):
-                # Check if line_b contains an executive / leadership title
-                if any(t in line_b.lower() for t in EXECUTIVE_TITLES):
+                if line_a.lower() in non_names or any(w.lower() in ["contact", "privacy", "policy", "terms", "overview", "click", "rights", "home", "people"] for w in words):
+                    continue
+                # Clean line_b title: strip leading/trailing punctuation and whitespace
+                clean_title = re.sub(r'^[\s\-–—:•*|]+', '', line_b).strip()
+                clean_title = re.sub(r'[\s\-–—:•*|]+$', '', clean_title).strip()
+                # Check if clean_title contains an executive / leadership title
+                if any(t in clean_title.lower() for t in EXECUTIVE_TITLES) and 2 < len(clean_title) < 60:
                     name = line_a
-                    title = line_b
-                    if name not in seen_names and len(name) < 35 and len(title) < 50:
+                    title = clean_title
+                    if name not in seen_names and len(name) < 35:
                         seen_names.add(name)
                         
                         # Check if any discovered email matches name
@@ -784,10 +841,9 @@ class AIScraperEngine:
         # Always run local heuristic AI first as baseline
         baseline = cls.run_local_heuristic_ai(crawled_data)
         
-        # Determine available API key and provider
-        provider, api_key = cls._resolve_ai_provider(model_provider)
-        if not api_key:
-            return baseline  # Seamless fallback
+        req = model_provider.lower() if model_provider else "auto"
+        if req == "heuristic":
+            return baseline
 
         # Aggregate text summary (max ~8000 chars for optimal speed & token cost)
         pages = crawled_data.get("pages", {})
@@ -820,46 +876,101 @@ class AIScraperEngine:
             f"{combined_prompt_text}"
         )
 
-        try:
-            llm_result = None
-            if provider == "openai" or provider == "groq":
-                llm_result = cls._call_openai_compatible(provider, api_key, prompt)
-            elif provider == "gemini":
-                llm_result = cls._call_gemini(api_key, prompt)
-            elif provider == "anthropic":
-                llm_result = cls._call_anthropic(api_key, prompt)
+        # Build list of candidate providers to try with multi-provider failover
+        provider_definitions = [
+            ("gemini", ["gemini_api_keys", "gemini_api_key"]),
+            ("groq", ["groq_api_keys", "groq_api_key"]),
+            ("openai", ["openai_api_keys", "openai_api_key"]),
+            ("anthropic", ["anthropic_api_keys", "anthropic_api_key"])
+        ]
 
-            if llm_result:
-                # Merge LLM results with baseline
-                baseline["company_name"] = llm_result.get("company_name") or baseline["company_name"]
-                baseline["summary"] = llm_result.get("summary") or baseline["summary"]
-                baseline["industry"] = llm_result.get("industry", "Unknown")
-                baseline["ai_engine"] = f"{provider.capitalize()} LLM Engine"
+        providers_to_try = []
+        if req != "auto":
+            for name, key_names in provider_definitions:
+                if req in name:
+                    for kn in key_names:
+                        k = get_api_key(kn)
+                        if k:
+                            providers_to_try.append((name, k))
+                            break
+        else:
+            for name, key_names in provider_definitions:
+                for kn in key_names:
+                    k = get_api_key(kn)
+                    if k:
+                        providers_to_try.append((name, k))
+                        break
 
-                # Merge executives
-                llm_execs = llm_result.get("executives", [])
-                if llm_execs:
-                    baseline["team_leadership"] = llm_execs
+        for provider, api_key in providers_to_try:
+            try:
+                llm_result = None
+                if provider == "openai" or provider == "groq":
+                    llm_result = cls._call_openai_compatible(provider, api_key, prompt)
+                elif provider == "gemini":
+                    llm_result = cls._call_gemini(api_key, prompt)
+                elif provider == "anthropic":
+                    llm_result = cls._call_anthropic(api_key, prompt)
 
-                # Merge any newly discovered emails
-                existing_emails = {e["email"] for e in baseline["emails"]}
-                for d in llm_result.get("department_contacts", []):
-                    em = d.get("email")
-                    if em and cls._is_valid_email(em) and em not in existing_emails:
-                        baseline["emails"].append({
-                            "email": em,
-                            "username": em.split("@")[0],
-                            "domain": em.split("@")[-1],
-                            "category": "Role / Departmental",
-                            "role_label": d.get("department", "Department"),
-                            "is_primary_domain": True,
-                            "source": f"{provider}_ai_inference",
-                            "context": f"AI identified as {d.get('department')}"
-                        })
-                        existing_emails.add(em)
-        except Exception:
-            # Fall back to baseline on any LLM parsing or network issue
-            pass
+                if llm_result and isinstance(llm_result, dict):
+                    # Sanitize text fields so they are 100% console-safe across all encodings
+                    cname = llm_result.get("company_name")
+                    if cname and isinstance(cname, str):
+                        baseline["company_name"] = cls.sanitize_console_text(cname)
+                    
+                    smry = llm_result.get("summary")
+                    if smry and isinstance(smry, str):
+                        baseline["summary"] = cls.sanitize_console_text(smry)
+                    
+                    ind = llm_result.get("industry")
+                    if ind and isinstance(ind, str):
+                        baseline["industry"] = cls.sanitize_console_text(ind)
+
+                    model_used = llm_result.get("_model_used", "")
+                    baseline["ai_engine"] = f"{provider.capitalize()} ({model_used}) Engine" if model_used else f"{provider.capitalize()} LLM Engine"
+
+                    # Merge executives
+                    llm_execs = llm_result.get("executives", [])
+                    if llm_execs and isinstance(llm_execs, list):
+                        cleaned_execs = []
+                        for ex in llm_execs:
+                            if isinstance(ex, dict) and ex.get("name"):
+                                cleaned_execs.append({
+                                    "name": cls.sanitize_console_text(ex.get("name", "")),
+                                    "title": cls.sanitize_console_text(ex.get("title", "")),
+                                    "email": ex.get("email") or "",
+                                    "linkedin": ex.get("linkedin") or ""
+                                })
+                        if cleaned_execs:
+                            baseline["team_leadership"] = cleaned_execs
+
+                    # Merge any newly discovered emails
+                    existing_emails = {e["email"] for e in baseline["emails"]}
+                    for d in llm_result.get("department_contacts", []):
+                        if isinstance(d, dict):
+                            em = d.get("email")
+                            if em and cls._is_valid_email(em) and em not in existing_emails:
+                                baseline["emails"].append({
+                                    "email": em,
+                                    "username": em.split("@")[0],
+                                    "domain": em.split("@")[-1],
+                                    "category": "Role / Departmental",
+                                    "role_label": d.get("department", "Department"),
+                                    "is_primary_domain": True,
+                                    "source": f"{provider}_ai_inference",
+                                    "context": f"AI identified as {d.get('department')}"
+                                })
+                                existing_emails.add(em)
+                    
+                    # Merge headquarters if found
+                    hq = llm_result.get("headquarters")
+                    if hq and isinstance(hq, str) and len(hq.strip()) > 10:
+                        clean_hq = cls.sanitize_console_text(hq)
+                        if clean_hq not in baseline["headquarters"]:
+                            baseline["headquarters"].insert(0, clean_hq)
+
+                    return baseline
+            except Exception:
+                continue
 
         return baseline
 
@@ -871,8 +982,8 @@ class AIScraperEngine:
         # Check providers in priority
         providers = [
             ("gemini", ["gemini_api_keys", "gemini_api_key"]),
-            ("openai", ["openai_api_keys", "openai_api_key"]),
             ("groq", ["groq_api_keys", "groq_api_key"]),
+            ("openai", ["openai_api_keys", "openai_api_key"]),
             ("anthropic", ["anthropic_api_keys", "anthropic_api_key"])
         ]
 
@@ -897,7 +1008,7 @@ class AIScraperEngine:
 
     DEFAULT_AI_MODELS = {
         "openai": "gpt-4o-mini",
-        "gemini": "gemini-2.0-flash",
+        "gemini": "gemini-3.8-flash",
         "groq": "llama-3.3-70b-versatile",
         "anthropic": "claude-3-5-haiku-latest"
     }
@@ -907,42 +1018,49 @@ class AIScraperEngine:
         """Call OpenAI or Groq chat completions endpoint with automatic model resolution and fallback."""
         url = "https://api.openai.com/v1/chat/completions" if provider == "openai" else "https://api.groq.com/openai/v1/chat/completions"
         if provider == "openai":
-            model = get_api_key("openai_model") or cls.DEFAULT_AI_MODELS["openai"]
+            configured = get_api_key("openai_model") or cls.DEFAULT_AI_MODELS["openai"]
+            candidates = [configured, "gpt-4o-mini", "gpt-4o", "gpt-3.5-turbo"]
         else:
-            model = get_api_key("groq_model") or cls.DEFAULT_AI_MODELS["groq"]
+            configured = get_api_key("groq_model") or cls.DEFAULT_AI_MODELS["groq"]
+            candidates = [configured, "llama-3.1-8b-instant", "openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b", "allam-2-7b"]
 
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
         }
-        body = {
-            "model": model,
-            "messages": [
-                {"role": "system", "content": "You are a contact intelligence extraction AI. Always respond in valid JSON format."},
-                {"role": "user", "content": prompt}
-            ],
-            "response_format": {"type": "json_object"},
-            "temperature": 0.2
-        }
-        resp = requests.post(url, headers=headers, json=body, timeout=18)
-        if resp.status_code == 200:
-            content = resp.json()["choices"][0]["message"]["content"]
-            return json.loads(content)
-        elif resp.status_code in [400, 404] and provider == "groq" and model != "llama-3.1-8b-instant":
-            # Fallback to ultra-fast 8B instant if 70B versatile encounters capacity or tier constraints
-            fb_body = dict(body)
-            fb_body["model"] = "llama-3.1-8b-instant"
-            fb_resp = requests.post(url, headers=headers, json=fb_body, timeout=18)
-            if fb_resp.status_code == 200:
-                content = fb_resp.json()["choices"][0]["message"]["content"]
-                return json.loads(content)
+        for model in candidates:
+            body = {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": "You are a contact intelligence extraction AI. Always respond in valid JSON format."},
+                    {"role": "user", "content": prompt}
+                ],
+                "response_format": {"type": "json_object"},
+                "temperature": 0.2,
+                "max_tokens": 1200
+            }
+            try:
+                resp = requests.post(url, headers=headers, json=body, timeout=18)
+                if resp.status_code == 200:
+                    content = resp.json()["choices"][0]["message"]["content"]
+                    data = json.loads(content)
+                    data["_model_used"] = model
+                    return data
+                elif resp.status_code in [400, 404, 429] and provider == "groq":
+                    continue
+            except Exception:
+                continue
         return None
 
     @classmethod
     def _call_gemini(cls, api_key, prompt):
-        """Call Google Gemini REST endpoint (defaulting to gemini-2.0-flash with 1.5-flash fallback)."""
-        model = get_api_key("gemini_model") or cls.DEFAULT_AI_MODELS["gemini"]
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+        """Call Google Gemini REST endpoint with cascading model fallback."""
+        configured = get_api_key("gemini_model") or cls.DEFAULT_AI_MODELS["gemini"]
+        candidates = [configured]
+        for m in ["gemini-3.5-flash-lite", "gemini-flash-latest", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]:
+            if m not in candidates:
+                candidates.append(m)
+
         body = {
             "contents": [{
                 "parts": [{"text": f"{prompt}\nReturn ONLY pure valid JSON."}]
@@ -952,63 +1070,137 @@ class AIScraperEngine:
                 "temperature": 0.2
             }
         }
-        resp = requests.post(url, json=body, timeout=18)
-        if resp.status_code == 200:
-            text = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
-            return json.loads(text)
-        elif resp.status_code in [400, 404] and model != "gemini-1.5-flash":
-            # Graceful fallback to gemini-1.5-flash
-            fb_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-            fb_resp = requests.post(fb_url, json=body, timeout=18)
-            if fb_resp.status_code == 200:
-                text = fb_resp.json()["candidates"][0]["content"]["parts"][0]["text"]
-                return json.loads(text)
+        for model in candidates:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+            try:
+                resp = requests.post(url, json=body, timeout=18)
+                if resp.status_code == 200:
+                    text = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
+                    data = json.loads(text)
+                    data["_model_used"] = model
+                    return data
+                elif resp.status_code in [400, 404, 503]:
+                    continue
+            except Exception:
+                continue
         return None
 
     @classmethod
     def _call_anthropic(cls, api_key, prompt):
         """Call Anthropic Messages REST endpoint (defaulting to claude-3-5-haiku-latest with snapshot fallback)."""
         url = "https://api.anthropic.com/v1/messages"
-        model = get_api_key("anthropic_model") or cls.DEFAULT_AI_MODELS["anthropic"]
+        configured = get_api_key("anthropic_model") or cls.DEFAULT_AI_MODELS["anthropic"]
+        candidates = [configured, "claude-3-5-haiku-20241022", "claude-3-haiku-20240307", "claude-3-5-sonnet-latest"]
         headers = {
             "x-api-key": api_key,
             "anthropic-version": "2023-06-01",
             "Content-Type": "application/json"
         }
-        body = {
-            "model": model,
-            "max_tokens": 1500,
-            "messages": [{"role": "user", "content": f"{prompt}\nRespond with JSON only."}]
-        }
-        resp = requests.post(url, headers=headers, json=body, timeout=18)
-        if resp.status_code == 200:
-            txt = resp.json()["content"][0]["text"]
-            # Extract json if wrapped in ```json ... ```
-            m = re.search(r'\{.*\}', txt, re.DOTALL)
-            if m:
-                return json.loads(m.group(0))
-        elif resp.status_code in [400, 404] and "latest" in model:
-            # Fallback to dated snapshot if dynamic latest alias is rejected on legacy API accounts
-            fb_body = dict(body)
-            fb_body["model"] = "claude-3-5-haiku-20241022"
-            fb_resp = requests.post(url, headers=headers, json=fb_body, timeout=18)
-            if fb_resp.status_code == 200:
-                txt = fb_resp.json()["content"][0]["text"]
-                m = re.search(r'\{.*\}', txt, re.DOTALL)
-                if m:
-                    return json.loads(m.group(0))
+        workspace_id = get_api_key("anthropic_workspace_id")
+        if workspace_id:
+            headers["anthropic-workspace-id"] = workspace_id
+
+        for model in candidates:
+            body = {
+                "model": model,
+                "max_tokens": 1200,
+                "messages": [{"role": "user", "content": f"{prompt}\nRespond with JSON only."}]
+            }
+            try:
+                resp = requests.post(url, headers=headers, json=body, timeout=18)
+                if resp.status_code == 200:
+                    txt = resp.json()["content"][0]["text"]
+                    m = re.search(r'\{.*\}', txt, re.DOTALL)
+                    if m:
+                        data = json.loads(m.group(0))
+                        data["_model_used"] = model
+                        return data
+                elif resp.status_code in [400, 404]:
+                    continue
+            except Exception:
+                continue
         return None
+
+    @classmethod
+    def enrich_leadership_with_b2b(cls, dossier):
+        """
+        Enrich discovered leadership team members who lack direct emails
+        using Name2Email permutator and configured B2B APIs (Apollo, Hunter, SignalHire).
+        """
+        team = dossier.get("team_leadership", [])
+        base_domain = dossier.get("base_domain", "")
+        if not team or not base_domain:
+            return dossier
+
+        existing_emails = {e["email"].lower() for e in dossier.get("emails", [])}
+        enriched_count = 0
+
+        # Check if domain has active MX servers
+        has_mx = True
+        try:
+            from api_engines import DNSInspectorEngine
+            dns_info = DNSInspectorEngine.check_domain_dns(base_domain)
+            has_mx = dns_info.get("has_mx", True)
+        except Exception:
+            pass
+
+        if not has_mx:
+            return dossier
+
+        for tm in team:
+            if tm.get("email"):
+                continue
+            name = tm.get("name", "").strip()
+            parts = [p for p in name.split() if p.isalpha()]
+            if len(parts) < 2:
+                continue
+            first = parts[0].lower()
+            last = parts[-1].lower()
+
+            candidate_email = f"{first}.{last}@{base_domain}"
+            found = False
+
+            # Check Hunter if key exists
+            try:
+                from api_engines import HunterEngine
+                h_res = HunterEngine.find_email(base_domain, first, last)
+                if h_res.get("success") and h_res.get("email"):
+                    candidate_email = h_res["email"]
+                    found = True
+            except Exception:
+                pass
+
+            if candidate_email.lower() not in existing_emails:
+                tm["email"] = candidate_email
+                existing_emails.add(candidate_email.lower())
+                src = "Hunter.io B2B Finder" if found else "Name2Email Permutator (MX Verified)"
+                dossier.setdefault("emails", []).append({
+                    "email": candidate_email,
+                    "username": candidate_email.split("@")[0],
+                    "domain": base_domain,
+                    "category": "Executive / Personal",
+                    "role_label": tm.get("title", "Executive"),
+                    "is_primary_domain": True,
+                    "source": src,
+                    "context": f"B2B match for {tm.get('name')} ({tm.get('title')})"
+                })
+                enriched_count += 1
+
+        dossier["b2b_enriched"] = True
+        dossier["b2b_enriched_count"] = enriched_count
+        return dossier
 
     # -------------------------------------------------------------
     # Main Harvester Public Entry Point
     # -------------------------------------------------------------
     @classmethod
-    def harvest(cls, target, max_pages=8, ai_provider="auto"):
+    def harvest(cls, target, max_pages=8, ai_provider="auto", enrich_b2b=False):
         """
         Complete Harvester Pipeline:
         1. Crawls target site across key discovery routes
         2. Executes Obfuscation De-cloaker & Contact Extraction
         3. Structures data with AI (Heuristic or LLM)
+        4. Optionally enriches discovered leadership via B2B APIs
         """
         crawl_res = cls.crawl_site(target, max_pages=max_pages)
         if not crawl_res.get("success"):
@@ -1019,5 +1211,7 @@ class AIScraperEngine:
             }
 
         dossier = cls.run_llm_ai(crawl_res, model_provider=ai_provider)
+        if enrich_b2b:
+            dossier = cls.enrich_leadership_with_b2b(dossier)
         dossier["success"] = True
         return dossier
